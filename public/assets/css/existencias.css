@@ -1,0 +1,730 @@
+.existencias-page {
+    padding: 20px;
+}
+
+.existencias-header {
+    margin-bottom: 18px;
+}
+
+.existencias-resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.existencia-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    border-left: 6px solid #0f62a5;
+}
+
+.existencia-card span {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.existencia-card strong {
+    font-size: 24px;
+    color: #0f172a;
+}
+
+.existencia-card.total {
+    border-left-color: #db2777;
+}
+
+.existencia-card.unidades {
+    border-left-color: #2563eb;
+}
+
+.existencia-card.normal {
+    border-left-color: #15803d;
+}
+
+.existencia-card.warning {
+    border-left-color: #f59e0b;
+}
+
+.existencia-card.danger {
+    border-left-color: #dc2626;
+}
+
+.existencia-card.valor {
+    border-left-color: #7c3aed;
+}
+
+.existencias-filter-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.existencias-filter-form {
+    display: grid;
+    grid-template-columns: 2fr repeat(6, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.existencia-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.existencia-field label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #0f4c81;
+}
+
+.existencia-field input,
+.existencia-field select {
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    padding: 8px 10px;
+    outline: none;
+    background: #fff;
+    font-size: 13px;
+}
+
+.existencia-field input:focus,
+.existencia-field select:focus {
+    border-color: #0f62a5;
+    box-shadow: 0 0 0 3px rgba(15, 98, 165, 0.12);
+}
+
+.existencias-actions {
+    display: flex;
+    gap: 8px;
+    align-items: end;
+}
+
+.btn-primary-action,
+.btn-secondary-action {
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 9px;
+    border: none;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.btn-primary-action {
+    background: #0f62a5;
+    color: #ffffff;
+}
+
+.btn-secondary-action {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-primary-action:hover {
+    background: #0b4f86;
+}
+
+.btn-secondary-action:hover {
+    background: #cbd5e1;
+}
+
+.existencias-table-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.table-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.table-topbar h3 {
+    margin: 0;
+    color: #0f4c81;
+    font-size: 18px;
+}
+
+.table-topbar p {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Anchos fijos: el contenido de una ubicación extensa ya no oculta
+   las columnas Existencia, Estado y Costos del lado derecho. */
+.tabla-existencias {
+    width: 100%;
+    min-width: 1480px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.tabla-existencias--admin .col-codigo { width: 7.5%; }
+.tabla-existencias--admin .col-barras { width: 8%; }
+.tabla-existencias--admin .col-descripcion { width: 19%; }
+.tabla-existencias--admin .col-categoria { width: 9%; }
+.tabla-existencias--admin .col-proveedor { width: 7%; }
+.tabla-existencias--admin .col-unidad { width: 4%; }
+.tabla-existencias--admin .col-almacen { width: 8%; }
+.tabla-existencias--admin .col-ubicacion { width: 13%; }
+.tabla-existencias--admin .col-existencia { width: 7%; }
+.tabla-existencias--admin .col-estado { width: 9%; }
+.tabla-existencias--admin .col-costos { width: 8.5%; }
+
+.tabla-existencias--general { min-width: 1320px; }
+.tabla-existencias--general .col-codigo { width: 8%; }
+.tabla-existencias--general .col-barras { width: 9%; }
+.tabla-existencias--general .col-descripcion { width: 20%; }
+.tabla-existencias--general .col-categoria { width: 10%; }
+.tabla-existencias--general .col-proveedor { width: 8%; }
+.tabla-existencias--general .col-unidad { width: 5%; }
+.tabla-existencias--general .col-almacen { width: 9%; }
+.tabla-existencias--general .col-ubicacion { width: 13%; }
+.tabla-existencias--general .col-existencia { width: 8%; }
+.tabla-existencias--general .col-estado { width: 10%; }
+
+.tabla-existencias thead th {
+    background: #0f62a5;
+    color: #ffffff;
+    padding: 10px;
+    text-align: left;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.tabla-existencias tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: middle;
+}
+
+/* Sobrescribir las reglas generales de .erp-table sólo en Existencias. */
+.tabla-existencias.erp-table td {
+    padding: 10px 9px !important;
+    font-size: 12px !important;
+}
+
+.tabla-existencias.erp-table th {
+    padding: 11px 9px !important;
+    font-size: 11px !important;
+    letter-spacing: .2px;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.tabla-existencias th:nth-child(1),
+.tabla-existencias th:nth-child(2),
+.tabla-existencias td:nth-child(1),
+.tabla-existencias td:nth-child(2),
+.tabla-existencias td:nth-child(9) {
+    white-space: nowrap;
+    overflow-wrap: normal;
+}
+
+.tabla-existencias td:nth-child(1),
+.tabla-existencias td:nth-child(2) {
+    font-variant-numeric: tabular-nums;
+    font-size: 11px !important;
+}
+
+.existencias-table-card {
+    min-width: 0;
+    scroll-margin-top: 14px;
+}
+
+.existencias-table-card .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tabla-existencias tbody tr:hover {
+    background: #f8fafc;
+}
+
+.descripcion-cell {
+    white-space: normal !important;
+    font-weight: 700;
+    color: #111827;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.existencia-number {
+    font-weight: 900;
+    color: #0f172a;
+}
+
+.stock-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.estado-normal {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.estado-bajo {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.estado-sin {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.empty-table {
+    text-align: center;
+    padding: 24px !important;
+    color: #64748b;
+    font-weight: 700;
+}
+
+@media (max-width: 1400px) {
+    .existencias-resumen-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .existencias-filter-form {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .search-field {
+        grid-column: span 3;
+    }
+}
+
+@media (max-width: 800px) {
+    .existencias-resumen-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .existencias-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .search-field {
+        grid-column: span 1;
+    }
+
+    .existencias-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-primary-action,
+    .btn-secondary-action {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   Vista rápida de costos
+   ========================================================= */
+.costos-cell {
+    text-align: center;
+}
+
+.btn-vista-costos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 7px 12px;
+    border: 1px solid #bfdbfe;
+    border-radius: 9px;
+    background: #eff6ff;
+    color: #0f4c81;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.btn-vista-costos:hover {
+    background: #dbeafe;
+    border-color: #93c5fd;
+    transform: translateY(-1px);
+}
+
+.btn-vista-costos:focus-visible,
+.costos-modal-close:focus-visible,
+.btn-cerrar-costos:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .28);
+    outline-offset: 2px;
+}
+
+body.costos-modal-open {
+    overflow: hidden;
+}
+
+.costos-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.costos-modal.is-open {
+    display: flex;
+}
+
+.costos-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, .62);
+    backdrop-filter: blur(2px);
+}
+
+.costos-modal-dialog {
+    position: relative;
+    z-index: 1;
+    width: min(760px, 100%);
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, .28);
+}
+
+.costos-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 22px 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.costos-modal-eyebrow {
+    display: block;
+    margin-bottom: 3px;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.costos-modal-header h3 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 21px;
+}
+
+.costos-modal-header p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.costos-modal-close {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border: 0;
+    border-radius: 10px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.costos-modal-body {
+    padding: 20px 22px;
+}
+
+.costos-modal-section + .costos-modal-section {
+    margin-top: 20px;
+}
+
+.costos-modal-section h4 {
+    margin: 0 0 12px;
+    color: #0f4c81;
+    font-size: 14px;
+}
+
+.costos-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.costos-form-field {
+    min-width: 0;
+}
+
+.costos-form-field label {
+    display: block;
+    margin-bottom: 5px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: .025em;
+}
+
+.costos-form-field input,
+.costos-form-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dbe3ee;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 10px 11px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    resize: none;
+}
+
+.costos-span-2 {
+    grid-column: span 2;
+}
+
+.costos-resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.costo-resumen-card {
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 14px;
+}
+
+.costo-resumen-card.destacado {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+.costo-resumen-card span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.costo-resumen-card strong {
+    display: block;
+    margin-top: 6px;
+    color: #0f172a;
+    font-size: 21px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.costo-resumen-card small {
+    display: block;
+    margin-top: 7px;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.35;
+}
+
+.costos-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 14px 22px 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.btn-cerrar-costos {
+    min-height: 38px;
+    padding: 8px 18px;
+    border: 0;
+    border-radius: 9px;
+    background: #0f62a5;
+    color: #ffffff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.btn-cerrar-costos:hover {
+    background: #0b4f86;
+}
+
+@media (max-width: 640px) {
+    .costos-modal {
+        padding: 10px;
+    }
+
+    .costos-modal-dialog {
+        max-height: calc(100vh - 20px);
+        border-radius: 12px;
+    }
+
+    .costos-modal-header,
+    .costos-modal-body,
+    .costos-modal-footer {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .costos-form-grid,
+    .costos-resumen-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .costos-span-2 {
+        grid-column: span 1;
+    }
+
+    .btn-cerrar-costos {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   Paginación · 20 productos por página
+   ========================================================= */
+.existencias-page-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: #1d4ed8;
+    background: #eff6ff;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.existencias-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 17px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.existencias-pagination-info {
+    color: #475569;
+    font-size: 13px;
+}
+
+.existencias-pagination-links {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.existencias-pagination-links a,
+.existencias-pagination-links span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #0f4c81;
+    text-decoration: none;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    box-sizing: border-box;
+}
+
+.existencias-pagination-links a:hover,
+.existencias-pagination-links a:focus-visible {
+    color: #fff;
+    background: #0f62a5;
+    border-color: #0f62a5;
+}
+
+.existencias-pagination-links .is-current {
+    color: #fff;
+    background: #0f62a5;
+    border-color: #0f62a5;
+}
+
+.existencias-pagination-links .is-disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+
+.existencias-pagination-links .pagination-ellipsis {
+    min-width: 17px;
+    padding-left: 2px;
+    padding-right: 2px;
+    border-color: transparent;
+    color: #64748b;
+}
+
+.tabla-existencias .btn-vista-costos {
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+@media (max-width: 800px) {
+    .existencias-page-indicator {
+        white-space: normal;
+    }
+
+    .existencias-pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .existencias-pagination-links {
+        justify-content: center;
+    }
+}

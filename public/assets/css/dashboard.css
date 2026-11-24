@@ -1,0 +1,1077 @@
+/* =========================================================
+   DASHBOARD - ESCRITORIO, TABLET Y MÓVIL
+   ========================================================= */
+
+.power-dashboard,
+.power-dashboard * {
+    box-sizing: border-box;
+}
+
+.power-dashboard {
+    display: grid;
+    grid-template-columns: 190px 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 12px 0 22px;
+    background: #f4f7fb;
+}
+
+.power-dashboard button,
+.power-dashboard select,
+.power-dashboard a {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.power-dashboard button:focus-visible,
+.power-dashboard select:focus-visible,
+.power-dashboard a:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, .35);
+    outline-offset: 3px;
+}
+
+.dash-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.side-card,
+.metric-card,
+.chart-window,
+.panel-card,
+.alert-card {
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.hover-card:hover,
+.alert-card:hover,
+.hover-row:hover {
+    transform: translateY(-2px);
+}
+
+.side-card {
+    color: #ffffff;
+    border-radius: 18px;
+    padding: 15px;
+    min-height: 96px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .12);
+}
+
+.side-card span {
+    display: block;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    opacity: .95;
+}
+
+.side-card strong {
+    display: block;
+    font-size: 28px;
+    margin: 5px 0;
+    line-height: 1;
+}
+
+.side-card small {
+    font-size: 11px;
+    font-weight: 800;
+    opacity: .92;
+}
+
+.side-card.pink {
+    background: linear-gradient(135deg, #ec4899, #be185d);
+}
+
+.side-card.blue {
+    background: linear-gradient(135deg, #2563eb, #0f4c81);
+}
+
+.side-card.yellow {
+    background: linear-gradient(135deg, #f59e0b, #b45309);
+}
+
+.side-card.red {
+    background: linear-gradient(135deg, #ef4444, #991b1b);
+}
+
+.side-card.gray {
+    background: linear-gradient(135deg, #64748b, #334155);
+}
+
+.dash-main {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.dash-title-card {
+    background: linear-gradient(135deg, #0f4c81, #2563eb);
+    color: #ffffff;
+    border-radius: 20px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    min-height: 98px;
+    box-shadow: 0 14px 32px rgba(15, 76, 129, .20);
+}
+
+.dash-title-card h2 {
+    margin: 0 0 5px;
+    font-size: 27px;
+    font-weight: 950;
+    letter-spacing: -.3px;
+}
+
+.dash-title-card p {
+    margin: 0;
+    font-size: 13px;
+    opacity: .94;
+}
+
+.dashboard-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-actions form {
+    margin: 0;
+}
+
+.dashboard-filter {
+    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(255,255,255,.16);
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 10px 12px;
+    min-height: 48px;
+    font-size: 16px;
+    font-weight: 900;
+    outline: none;
+    cursor: pointer;
+}
+
+.dashboard-filter option {
+    color: #111827;
+}
+
+.date-pill {
+    background: rgba(255,255,255,.16);
+    border: 1px solid rgba(255,255,255,.25);
+    border-radius: 14px;
+    padding: 10px 14px;
+    text-align: center;
+    min-width: 112px;
+    min-height: 48px;
+}
+
+.date-pill span {
+    display: block;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.date-pill strong {
+    display: block;
+    font-size: 16px;
+}
+
+.alert-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(190px, 1fr));
+    gap: 12px;
+}
+
+.alert-card {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 13px 14px;
+    border: 1px solid #e5e7eb;
+    text-decoration: none;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, .06);
+    min-width: 0;
+    min-height: 72px;
+}
+
+.alert-card.warning {
+    border-left: 5px solid #f59e0b;
+}
+
+.alert-card.danger {
+    border-left: 5px solid #dc2626;
+}
+
+.alert-card.info {
+    border-left: 5px solid #2563eb;
+}
+
+.alert-card.neutral {
+    border-left: 5px solid #64748b;
+}
+
+.alert-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    background: #f1f5f9;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.alert-content strong {
+    display: block;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 950;
+    margin-bottom: 3px;
+}
+
+.alert-content span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.metric-row {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.metric-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 14px 15px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+    min-height: 92px;
+}
+
+.metric-card span {
+    display: block;
+    font-size: 10px;
+    font-weight: 950;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.metric-card strong {
+    display: block;
+    font-size: 25px;
+    color: #0f4c81;
+    margin: 3px 0;
+    line-height: 1.1;
+}
+
+.metric-card small {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.metric-card.intelligent strong,
+.metric-smart-text {
+    font-size: 14px !important;
+    line-height: 1.25;
+    max-height: 36px;
+    overflow: hidden;
+}
+
+.charts-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+.chart-window {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 14px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, .06);
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-head {
+    margin-bottom: 8px;
+}
+
+.chart-head h3 {
+    color: #0f4c81;
+    font-size: 15px;
+    margin: 0;
+    font-weight: 950;
+}
+
+.chart-head span {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    margin-top: 2px;
+    display: block;
+}
+
+.chart-box {
+    flex: 1;
+    min-height: 210px;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.chart-box canvas {
+    display: block;
+    width: 100% !important;
+    max-width: 100%;
+}
+
+.dashboard-panels {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 12px;
+}
+
+.panel-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, .06);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.panel-header h3 {
+    color: #0f4c81;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 950;
+}
+
+.panel-header p {
+    margin: 3px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.panel-link {
+    color: #0f4c81;
+    font-weight: 950;
+    font-size: 12px;
+    background: #eff6ff;
+    padding: 8px 11px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-table {
+    min-width: 780px;
+}
+
+.dashboard-table th {
+    white-space: nowrap;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.dashboard-table td {
+    vertical-align: middle;
+    font-size: 12px;
+}
+
+.hover-row {
+    transition: background .18s ease;
+}
+
+.hover-row:hover {
+    background: #f8fafc;
+}
+
+.badge-status {
+    display: inline-flex;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.stock-progress {
+    width: 100%;
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.stock-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.stock-progress-bar.badge-success {
+    background: #16a34a;
+}
+
+.stock-progress-bar.badge-warning {
+    background: #f59e0b;
+}
+
+.stock-progress-bar.badge-danger {
+    background: #dc2626;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.movimientos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mov-item {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 12px;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, .04);
+}
+
+.mov-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    font-weight: 950;
+    flex-shrink: 0;
+}
+
+.mov-icon.entrada {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mov-icon.salida {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.mov-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mov-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.mov-folio {
+    font-weight: 950;
+    color: #111827;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.mov-type {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.mov-type.entrada {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.mov-type.salida {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.mov-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.mov-date {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.empty-panel,
+.empty-table {
+    color: #64748b;
+    font-size: 13px;
+    text-align: center;
+    padding: 16px;
+    font-weight: 700;
+}
+
+.top-products-panel {
+    margin-top: 2px;
+}
+
+.top-products-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.top-product-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    padding: 11px 12px;
+    transition: .2s ease;
+}
+
+.top-product-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(15,23,42,.08);
+}
+
+.top-product-number {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-weight: 950;
+    flex-shrink: 0;
+}
+
+.top-product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.top-product-info strong {
+    display: block;
+    color: #111827;
+    font-size: 12px;
+    font-weight: 950;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top-product-info span {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+.top-product-total {
+    color: #0f4c81;
+    font-size: 16px;
+    font-weight: 950;
+    text-align: right;
+}
+
+.top-product-total small {
+    display: block;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+/* =========================================================
+   ESCRITORIO COMPACTO
+   ========================================================= */
+
+@media (max-width: 1500px) {
+    .power-dashboard {
+        grid-template-columns: 170px minmax(0, 1fr);
+    }
+
+    .charts-compact-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .alert-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================
+   TABLET HORIZONTAL Y PANTALLA PEQUEÑA
+   ========================================================= */
+
+@media (max-width: 1180px) {
+    .power-dashboard {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+        padding: 10px 0 22px;
+    }
+
+    .dash-sidebar {
+        display: grid;
+        grid-template-columns:
+            repeat(5, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .side-card {
+        min-height: 94px;
+        padding: 14px;
+    }
+
+    .side-card strong {
+        font-size: clamp(24px, 3vw, 30px);
+    }
+
+    .dash-title-card {
+        padding: 20px;
+    }
+
+    .dash-title-card h2 {
+        font-size: clamp(24px, 3vw, 29px);
+    }
+
+    .metric-row {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+    .charts-compact-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-panels {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .chart-window {
+        min-width: 0;
+        min-height: 320px;
+    }
+
+    .chart-box {
+        min-height: 235px;
+    }
+
+    .panel-card {
+        min-width: 0;
+    }
+
+    .top-products-list {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .top-product-item {
+        min-width: 0;
+        min-height: 66px;
+    }
+}
+
+/* =========================================================
+   TABLET VERTICAL
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .power-dashboard {
+        gap: 12px;
+        padding: 8px 0 20px;
+    }
+
+    .dash-main {
+        gap: 12px;
+    }
+
+    .dash-sidebar {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .dash-sidebar .side-card:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+    }
+
+    .side-card {
+        min-height: 104px;
+        padding: 16px;
+    }
+
+    .side-card span {
+        font-size: 12px;
+    }
+
+    .side-card small {
+        font-size: 12px;
+    }
+
+    .dash-title-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 20px;
+        min-height: auto;
+    }
+
+    .dash-title-card p {
+        max-width: 680px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .dashboard-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .dashboard-actions form {
+        flex: 1;
+    }
+
+    .dashboard-filter {
+        width: 100%;
+        min-height: 52px;
+    }
+
+    .date-pill {
+        min-width: 150px;
+        min-height: 52px;
+    }
+
+    .alert-grid,
+    .metric-row {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .alert-card {
+        min-height: 82px;
+        padding: 14px;
+    }
+
+    .alert-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+    }
+
+    .alert-content strong {
+        font-size: 14px;
+    }
+
+    .alert-content span {
+        font-size: 12px;
+    }
+
+    .metric-card {
+        min-height: 110px;
+        padding: 16px;
+    }
+
+    .metric-card span {
+        font-size: 11px;
+    }
+
+    .metric-card strong {
+        font-size: 28px;
+    }
+
+    .metric-card small {
+        font-size: 12px;
+    }
+
+    .charts-compact-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .chart-window {
+        min-height: 350px;
+        padding: 16px;
+    }
+
+    .chart-head h3 {
+        font-size: 17px;
+    }
+
+    .chart-head span {
+        font-size: 12px;
+    }
+
+    .chart-box {
+        min-height: 260px;
+    }
+
+    .panel-card {
+        padding: 16px;
+    }
+
+    .panel-header {
+        align-items: flex-start;
+    }
+
+    .panel-link {
+        min-height: 48px;
+        padding: 10px 14px;
+    }
+
+    .top-products-list {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .top-product-item {
+        min-height: 72px;
+        padding: 13px 14px;
+    }
+
+    .top-product-number {
+        width: 42px;
+        height: 42px;
+        font-size: 16px;
+    }
+
+    .top-product-info strong {
+        font-size: 14px;
+    }
+
+    .top-product-info span {
+        font-size: 12px;
+    }
+
+    .top-product-total {
+        font-size: 18px;
+    }
+
+    .mov-item {
+        min-height: 72px;
+        padding: 14px;
+    }
+
+    .mov-icon {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+/* =========================================================
+   TELÉFONO Y TABLET MUY ANGOSTA
+   ========================================================= */
+
+@media (max-width: 600px) {
+    .power-dashboard {
+        gap: 10px;
+        padding: 6px 0 18px;
+    }
+
+    .dash-sidebar,
+    .alert-grid,
+    .metric-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .dash-sidebar .side-card:last-child:nth-child(odd) {
+        grid-column: auto;
+    }
+
+    .side-card {
+        min-height: 92px;
+    }
+
+    .dash-title-card {
+        padding: 17px;
+        border-radius: 16px;
+    }
+
+    .dash-title-card h2 {
+        font-size: 22px;
+    }
+
+    .dash-title-card p {
+        font-size: 13px;
+    }
+
+    .dashboard-actions {
+        flex-direction: column;
+    }
+
+    .dashboard-filter,
+    .date-pill {
+        width: 100%;
+    }
+
+    .alert-card {
+        min-height: 76px;
+    }
+
+    .metric-card {
+        min-height: 100px;
+    }
+
+    .chart-window {
+        min-height: 320px;
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .chart-box {
+        min-height: 235px;
+    }
+
+    .panel-card {
+        padding: 14px;
+        border-radius: 16px;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .panel-link {
+        width: 100%;
+    }
+
+    .dashboard-table {
+        min-width: 720px;
+    }
+
+    .top-product-item {
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .top-product-total {
+        min-width: 66px;
+    }
+
+    .mov-top {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* =========================================================
+   TABLET HORIZONTAL CON POCA ALTURA
+   ========================================================= */
+
+@media (
+    orientation: landscape
+) and (max-width: 1180px) and (max-height: 700px) {
+    .side-card {
+        min-height: 84px;
+        padding: 12px 14px;
+    }
+
+    .chart-window {
+        min-height: 290px;
+    }
+
+    .chart-box {
+        min-height: 205px;
+    }
+}
+
+/* =========================================================
+   DISPOSITIVOS TÁCTILES Y ACCESIBILIDAD
+   ========================================================= */
+
+@media (hover: none) and (pointer: coarse) {
+    .hover-card:hover,
+    .alert-card:hover,
+    .hover-row:hover,
+    .top-product-item:hover {
+        transform: none;
+    }
+
+    .alert-card,
+    .panel-link,
+    .dashboard-filter {
+        min-height: 48px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .side-card,
+    .metric-card,
+    .chart-window,
+    .panel-card,
+    .alert-card,
+    .hover-row,
+    .top-product-item {
+        transition: none;
+    }
+}
