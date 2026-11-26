@@ -1,0 +1,30 @@
+ERP G&D - ETAPA 1: Órdenes por ERP y avisos de llegada
+
+1) Extraer este ZIP y copiar la carpeta tools al proyecto C:\xampp\htdocs\almacen-farmacia2\tools (combinar).
+2) Ejecutar desde PowerShell:
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_flujo_oc_facturas_fase1.php" --check
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_flujo_oc_facturas_fase1.php" --apply
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_flujo_oc_facturas_fase1.php" --verify
+
+3) Abrir http://localhost/almacen-farmacia2/public/erp_oc_flujo.php
+
+REQUISITOS
+- El usuario de cada dueño debe estar activo con el rol DIRECCION (según la nomenclatura encontrada en la versión inspeccionada).
+- Los gerentes deben estar configurados en 'Gerentes destinatarios'.
+- MySQL disponible. Se crea una sola tabla erp_oc_flujo_mensajes.
+
+ALCANCE ETAPA 1
+- Compras envía OC por ERP a gerentes (elige con/sin costos).
+- Todos los usuarios DIRECCION activos reciben copia con costos.
+- Gerente ve bandeja, PDF según permiso y notifica llegada con nota opcional.
+- Compras ve avisos de llegada y consultar pendientes con diferencia entre pedido y cantidades aplicadas por factura.
+- La OC original NO se altera ni se borran partidas por completo, para guardar historial.
+- El aviso NO afecta inventario ni sustituye captura de factura.
+
+NO INCLUIDO AÚN
+- Cambio de reglas de captura/verificación/aplicación de facturas.
+- Desactivación definitiva de los módulos de recepción física; los accesos del menú Compras se simplifican, pero las rutas antiguas siguen disponibles hasta migrar con seguridad.
+- Notificación push automática en la campana global; de momento se consulta en bandeja ERP.
+
+El instalador guarda respaldos de archivos previos en tools/backups_flujo_oc_facturas_fase1.
+Comprobar en una copia / ambiente de prueba antes de producción. Hacer respaldo de MySQL por separado.

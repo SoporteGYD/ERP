@@ -86,7 +86,7 @@ class UsuarioController
             ];
         }
 
-        if ($rol !== 'ADMINISTRADOR' && $rol !== 'CAJERO' && $rol !== 'COMPRAS' && $rol !== 'CONTABILIDAD' && $rol !== 'DIRECCION' && empty($almacenId)) {
+        if ($rol !== 'ADMINISTRADOR' && $rol !== 'CAJERO' && $rol !== 'COMPRAS' && $rol !== 'CONTABILIDAD' && $rol !== 'DIRECCION' && $rol !== 'GERENTE' && empty($almacenId)) {
             return [
                 'success' => false,
                 'message' => 'Debes asignar un almacén al usuario.'
@@ -280,7 +280,7 @@ class UsuarioController
         ];
     }
 
-    if ($rol !== 'ADMINISTRADOR' && $rol !== 'CAJERO' && $rol !== 'COMPRAS' && $rol !== 'CONTABILIDAD' && $rol !== 'DIRECCION' && empty($almacenId)) {
+    if ($rol !== 'ADMINISTRADOR' && $rol !== 'CAJERO' && $rol !== 'COMPRAS' && $rol !== 'CONTABILIDAD' && $rol !== 'DIRECCION' && $rol !== 'GERENTE' && empty($almacenId)) {
         return [
             'success' => false,
             'message' => 'Debes asignar un almacén al usuario.'

@@ -92,4 +92,7 @@ try{
 </td></tr>
 <?php endforeach;?><?php if(!$rows):?><tr><td colspan="6">No hay solicitudes para este filtro.</td></tr><?php endif;?></tbody></table></div></section>
 <?php if($show>0):?><section class="card"><h2>Bitácora de solicitud #<?=$show?></h2><div class="scroll"><table><thead><tr><th>Fecha</th><th>Evento</th><th>Usuario</th><th>Antes</th><th>Después</th><th>Detalle</th></tr></thead><tbody><?php foreach($events as $e):?><tr><td><?=gct_h($e['creado_en'])?></td><td><?=gct_h($e['accion'])?></td><td><?=gct_h($e['usuario'])?></td><td><?=$e['existencia_antes']===null?'—':(int)$e['existencia_antes']?></td><td><?=$e['existencia_despues']===null?'—':(int)$e['existencia_despues']?></td><td><?=gct_h($e['detalle'])?></td></tr><?php endforeach;?><?php if(!$events):?><tr><td colspan="6">Sin eventos disponibles.</td></tr><?php endif;?></tbody></table></div></section><?php endif;?>
-</main></body></html>
+</main>
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
+</body></html>

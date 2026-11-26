@@ -77,4 +77,7 @@ $__gydNavigationHome = $__gydNavigationRole === 'COMPRAS' ? 'erp_compras_inicio.
 <?php endif; unset($__gydNavigationAccount,$__gydNavigationRole,$__gydNavigationAllowed,$__gydNavigationHome); ?>
 <!-- GYD_UNA_PESTANA_INTERNA -->
 <script src="assets/js/gyd_una_pestana.js?v=1"></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

@@ -1,0 +1,10 @@
+ACTUALIZACION VISUAL - PORTAL GERENTE
+
+Combina la carpeta tools en C:\xampp\htdocs\almacen-farmacia2\tools.
+
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_portal_gerente.php" --check
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_portal_gerente.php" --apply
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_portal_gerente.php" --verify
+
+URL: http://localhost/almacen-farmacia2/public/erp_oc_flujo.php
+Solo cambia public/erp_oc_flujo.php y genera respaldo.

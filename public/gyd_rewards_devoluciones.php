@@ -68,4 +68,7 @@ form{display:flex;gap:10px;flex-wrap:wrap;align-items:end}table{width:100%;borde
 <?php if(!$rows):?><tr><td colspan="8">Sin resultados.</td></tr><?php endif;?></tbody></table></div>
 <?php if($venta>0):?><div class="card"><h2>Detalle por partida</h2><div class="overflow"><table><thead><tr><th>Producto</th><th>Vendidas</th><th>Devueltas</th><th>Ingreso elegible</th><th>Puntos asignados</th><th>Puntos reversados</th></tr></thead><tbody>
 <?php foreach($detalle as $d):?><tr><td><?=rvh47($d['descripcion_snapshot'])?></td><td><?=rvh47($d['cantidad'].' '.$d['presentacion'])?></td><td><?=rvh47($d['cantidad_devuelta'])?></td><td><?=isset($d['ingreso_elegible_centavos'])?'$'.number_format((int)$d['ingreso_elegible_centavos']/100,2):'Histórica'?></td><td><?=isset($d['puntos_asignados'])?rvh47($d['puntos_asignados']):'Sin desglose'?></td><td><?=rvh47($d['puntos_devuelto'])?></td></tr><?php endforeach;?>
-</tbody></table></div></div><?php endif;?></main></body></html>
+</tbody></table></div></div><?php endif;?></main>
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
+</body></html>

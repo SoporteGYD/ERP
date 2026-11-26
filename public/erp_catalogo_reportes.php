@@ -139,4 +139,7 @@ function cr_url(array $sol,int $pag):string {$sol['pagina']=$pag;return 'erp_cat
 <p class="hint">La vista presenta 50 productos por página. Los archivos exportados incluyen todos los resultados del filtro. La opción PDF abre una versión lista para imprimir o guardar como PDF desde el navegador.</p>
 </main>
 <script src="assets/js/gyd_excel_reportes.js" defer></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

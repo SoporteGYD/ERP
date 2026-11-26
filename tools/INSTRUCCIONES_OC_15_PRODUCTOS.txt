@@ -1,0 +1,9 @@
+1. Extrae este ZIP en C:\xampp\htdocs\almacen-farmacia2\ para fusionar la carpeta tools con la existente.
+2. En PowerShell ejecuta:
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_oc_vertical.php" --check
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_oc_vertical.php" --apply
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_oc_vertical.php" --verify
+
+Si --check da error, NO ejecutes --apply.
+Para revertir:
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_diseno_oc_vertical.php" --rollback

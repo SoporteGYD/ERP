@@ -192,4 +192,7 @@ function gd_fc_url(array $query,array $new=[]):string{return 'erp_catalogo_finan
 <section class="card narrow"><h2>Cómo interpretar las mediciones</h2><p class="info"><b>Ganancia sobre costo:</b> (precio − costo) ÷ costo × 100. <b>Margen sobre venta:</b> (precio − costo) ÷ precio × 100. <b>Costo promedio:</b> promedio ponderado registrado, no promedio simple. <b>Precio objetivo:</b> calculado con el porcentaje y método registrados en la ficha. <b>Valores de stock:</b> solo POS de la sucursal seleccionada, sin movimientos automáticos. Los descuentos de ficha son informativos y no se aplican al precio de venta en este reporte.</p></section>
 </main>
 <script src="assets/js/gyd_excel_reportes.js" defer></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

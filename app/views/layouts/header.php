@@ -210,7 +210,45 @@ $menuAgregar('⚙️ Administración', 'Centro de Pruebas Integrales', 'erp_prue
 $menuAgregar('⚙️ Administración', 'Centro de Validación Operativa', 'erp_validacion_operativa.php', $menuEsAdmin);
 $menuAgregar('⚙️ Administración', 'Simulador de Operaciones', 'erp_simulador_operaciones.php', $menuEsAdmin);
 $menuAgregar('⚙️ Administración', 'Respaldos', 'respaldos.php', $menuEsAdmin || $esEncargado);
-// El ENCARGADO conserva todos sus accesos permitidos, pero distribuidos
+// GYD_MENU_EXTRA_OPERATIVO_V1 - Accesos adicionales, sin cambiar permisos de cada pagina.
+$gydMenuExtras = [
+    ['🏠 General', 'Centro de Notificaciones', 'erp_notificaciones.php', ($menuEsAdmin || $menuEsCompras || $esGerente)],
+    ['🧾 Compras y proveedores', 'Lista de Precios para Cajas', 'erp_lista_precios.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Órdenes y avisos de llegada', 'erp_oc_flujo.php', ($menuEsAdmin || $menuEsCompras || $esGerente)],
+    ['🧾 Compras y proveedores', 'Seguimiento de facturas por OC', 'erp_oc_facturas_seguimiento.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Conciliación de facturas', 'erp_facturas_conciliacion.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Integración OC y facturas', 'erp_oc_integracion_facturas.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Control de cierre de OC', 'erp_oc_cierre_controlado.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Órdenes pendientes WinCaja', 'erp_oc_win.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Destinatarios de OC por gerente', 'erp_oc_win_gerentes.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Historial de precios', 'erp_historial_precios.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Cambios de precios', 'erp_cambio_precios.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🧾 Compras y proveedores', 'Alertas de inventario', 'erp_alertas_inventario.php', ($menuEsAdmin || $menuEsCompras)],
+    ['🛍️ Ventas y gerencia', 'Conciliación diaria de cajas', 'erp_conciliacion_diaria_cajas.php', ($menuEsAdmin)],
+    ['🛍️ Ventas y gerencia', 'Eficiencia de cajeros', 'erp_eficiencia_cajeros.php', ($menuEsAdmin)],
+    ['🛍️ Ventas y gerencia', 'Supervisión de retiros', 'erp_retiros_supervision.php', ($menuEsAdmin)],
+    ['🛍️ Ventas y gerencia', 'Retiros diarios', 'erp_retiros_diarios.php', ($menuEsAdmin)],
+    ['🛍️ Ventas y gerencia', 'Cortes y bóveda', 'erp_cortes_boveda.php', ($menuEsAdmin)],
+    ['🛍️ Ventas y gerencia', 'Verificación de bóveda', 'erp_boveda_verificacion.php', ($menuEsAdmin)],
+    ['🧮 Control y conciliación', 'Auditoría de stock', 'erp_stock_auditoria.php', ($menuEsAdmin)],
+    ['🧮 Control y conciliación', 'Conciliación entre sistemas', 'erp_conciliacion_tt.php', ($menuEsAdmin)],
+    ['🧮 Control y conciliación', 'Inventarios de órdenes de compra', 'erp_oc_inventarios.php', ($menuEsAdmin || $menuEsCompras)],
+    ['⚙️ Administración', 'Alta de productos', 'erp_producto_alta.php', ($menuEsAdmin || $menuEsCompras)],
+];
+$gydRutasYaEnMenu = [];
+foreach ($menuSecciones as $gydLinks) {
+    foreach ($gydLinks as $gydLink) {
+        if (isset($gydLink['ruta'])) $gydRutasYaEnMenu[(string)$gydLink['ruta']] = true;
+    }
+}
+foreach ($gydMenuExtras as $gydMenuExtra) {
+    [$gydGrupo, $gydTitulo, $gydRuta, $gydPermitido] = $gydMenuExtra;
+    if (!$gydPermitido || isset($gydRutasYaEnMenu[$gydRuta])) continue;
+    if (!is_file(__DIR__ . '/../../../public/' . $gydRuta)) continue;
+    $menuAgregar($gydGrupo, $gydTitulo, $gydRuta, true);
+    $gydRutasYaEnMenu[$gydRuta] = true;
+}
+// FIN_GYD_MENU_EXTRA_OPERATIVO_V1// El ENCARGADO conserva todos sus accesos permitidos, pero distribuidos
 // en tres grupos compactos. Se toman de la lista anterior: no se otorgan
 // permisos ni se eliminan rutas de otros roles.
 if ($esEncargado) {
@@ -784,6 +822,9 @@ $menuNumeroEnlaces = array_sum(array_map('count', $menuSecciones));
             }
         }
     </style>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </head>
 
 <body>

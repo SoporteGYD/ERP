@@ -1,0 +1,15 @@
+ERP G&D - estados automáticos de notificaciones de llegada
+
+Copiar el contenido de tools/ al directorio C:\xampp\htdocs\almacen-farmacia2\tools\
+
+PowerShell:
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_estado_llegadas_stock.php" --check
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_estado_llegadas_stock.php" --apply
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_estado_llegadas_stock.php" --verify
+
+La actualización sólo reemplaza app/helpers/erp_centro_notificaciones.php y public/erp_notificaciones.php.
+El estado de cada aviso LLEGADA se consulta desde erp_facturas_stock_aplicaciones.
+Ninguna factura registrada sin aplicar inventario cierra un aviso.
+La notificación se mueve de Pendientes a Historial cuando se detecta una aplicación de stock posterior al aviso. El estado muestra Entrada realizada o Entrada realizada con mercancía pendiente, según las piezas pendientes de la OC.
+No actualiza stock, no cambia cantidades, no elimina historial ni modifica SQL.
+Una aplicación posterior puede asociarse cronológicamente a varios avisos de una misma OC: se necesita una relación documental entrega-factura para confirmación exacta por entrega. Mientras no haya esa relación, el seguimiento se realiza por orden y fecha, no por entrega única.

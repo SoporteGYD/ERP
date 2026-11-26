@@ -40,7 +40,7 @@ function ocw_calcular(array $lineas,array $tasas,float $fpgc=0):array {
 }
 function ocw_numero(int $id):string {return str_pad((string)$id,12,'0',STR_PAD_LEFT);}
 function ocw_order(PDO $db,int $id,array $user):array {
- $st=$db->prepare("SELECT o.*, p.nombre AS proveedor,p.direccion AS p_direccion,p.telefono AS p_telefono, m.*, a.estado AS autorizacion, a.decidido_por, u.nombre AS autorizo, em.nombre AS emitio FROM erp_ordenes_compra o JOIN proveedores p ON p.id=o.proveedor_id LEFT JOIN erp_oc_win_meta m ON m.orden_id=o.id LEFT JOIN erp_oc_autorizaciones a ON a.orden_id=o.id LEFT JOIN usuarios u ON u.id=a.decidido_por LEFT JOIN usuarios em ON em.id=o.usuario_id WHERE o.id=?");
+ $st=$db->prepare("SELECT o.*, p.nombre AS proveedor,p.direccion AS p_direccion,p.telefono AS p_telefono, m.*, fd.usuario_id AS oc_firmante_id, fd.nombre_snapshot AS oc_firmante_nombre, a.estado AS autorizacion, a.decidido_por, u.nombre AS autorizo, em.nombre AS emitio FROM erp_ordenes_compra o JOIN proveedores p ON p.id=o.proveedor_id LEFT JOIN erp_oc_win_meta m ON m.orden_id=o.id LEFT JOIN erp_oc_firmante_dueno fd ON fd.orden_id=o.id LEFT JOIN erp_oc_autorizaciones a ON a.orden_id=o.id LEFT JOIN usuarios u ON u.id=a.decidido_por LEFT JOIN usuarios em ON em.id=o.usuario_id WHERE o.id=?");
  $st->execute([$id]);$orden=$st->fetch(PDO::FETCH_ASSOC);
  if(!$orden)throw new RuntimeException('La orden no existe.');
  if(!ocw_can_read($db,$user,(string)$orden['destino'])){http_response_code(403);exit('No autorizado para consultar esta sucursal.');}

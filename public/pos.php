@@ -255,4 +255,7 @@ $__gydNavigationHome = $__gydNavigationRole === 'COMPRAS' ? 'erp_compras_inicio.
 <script src="assets/js/gyd_una_pestana.js?v=1"></script>
 <!-- GYD_TICKETS_EN_POS -->
 <script src="assets/js/gyd_tickets_en_pos.js?v=1"></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

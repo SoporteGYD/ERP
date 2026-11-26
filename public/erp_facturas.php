@@ -154,7 +154,7 @@ try{
  if($where)$sql.=' WHERE '.implode(' AND ',$where);
  $sql.=' ORDER BY f.id DESC LIMIT 120';$st=$db->prepare($sql);$st->execute($args);$facturas=$st->fetchAll(PDO::FETCH_ASSOC);
 }catch(Throwable $e){if(isset($db)&&$db->inTransaction())$db->rollBack();error_log('ERP facturas: '.$e->getMessage());$error=$e instanceof RuntimeException?$e->getMessage():'Error consultando facturas. Verifica la migración SQL y revisa el registro PHP.';}
-ef_header('ERP G&D · Entradas generales por factura','Compras registra el documento; Almacén verifica después la mercancía.');
+ef_header('ERP G&D · Entradas por factura y orden de compra','Compras compara lo negociado con lo facturado.');
 if($error):?><div class="alert error" role="alert"><?=ef_e($error)?></div><?php endif;
 if($flash):?><div class="alert success"><?=ef_e($flash)?></div><?php endif;
 if(ef_puede_capturar($usr)):?>
@@ -176,7 +176,7 @@ if($cpAutoResumen):?>
 </section>
 <?php endif;?>
 
-<section class="card"><h2>Registrar factura</h2><p class="muted">El registro genera la entrada general contable. La mercancía no se libera a stock vendible hasta que Almacén la verifique y después se integre esa operación. <b>Captura lo que ampara la factura real, aunque existan faltantes físicos. Las piezas no recibidas quedarán pendientes para Verificación y Recepción; registrar no suma existencias.</b></p>
+<section class="card"><h2>Registrar factura desde orden de compra</h2><div class="alert"><b>Transición en curso:</b> la recepción independiente dejó de estar disponible. Aquí ya puedes comparar los costos pactados con los facturados. Por seguridad, esta versión conserva temporalmente la verificación/aplicación de inventario existente: guardar una factura todavía NO suma existencias. No registres la misma llegada en otro módulo.</div><p class="muted">El registro genera la entrada general contable. La mercancía no se libera a stock vendible hasta que Almacén la verifique y después se integre esa operación. <b>Captura lo que ampara la factura real, aunque existan faltantes físicos. Las piezas no recibidas quedarán pendientes para Verificación y Recepción; registrar no suma existencias.</b></p>
 <form method="post" id="facturaForm" autocomplete="off"><input type="hidden" name="csrf" value="<?=ef_e($csrf)?>"><input type="hidden" name="captura_token" value="<?=ef_e($token)?>">
 <div class="grid">
 <div class="field"><label>Proveedor</label><select name="proveedor_id" required><option value="">Seleccionar proveedor...</option><?php foreach($proveedores as $p):?><option value="<?=(int)$p['id']?>"><?=ef_e($p['nombre'])?></option><?php endforeach;?></select></div>
@@ -196,7 +196,7 @@ if($cpAutoResumen):?>
  <div class="tablewrap"><table><thead><tr><th>Código</th><th>Producto</th><th>Piezas</th><th>Costo</th><th>Validación</th></tr></thead><tbody id="efImportFilas"></tbody></table></div>
  <button type="button" id="efImportAgregar" class="btn">Agregar artículos válidos a la factura</button></div>
  </details>
-<fieldset><legend>Productos de la factura</legend><div class="twocol"><div class="field"><label>Buscar por código o descripción</label><input id="buscar" placeholder="Escribe al menos dos caracteres"></div><div class="field"><label>&nbsp;</label><button type="button" id="buscarBoton">Buscar producto</button></div></div><div id="resultados" aria-live="polite" class="muted"></div><div class="tablewrap"><table><thead><tr><th>Producto</th><th>Cantidad en piezas</th><th>Costo unitario</th><th>Quitar</th></tr></thead><tbody id="lineas"></tbody></table></div></fieldset>
+<fieldset><legend>Productos de la factura</legend><div class="twocol"><div class="field"><label>Buscar por código o descripción</label><input id="buscar" placeholder="Escribe al menos dos caracteres"></div><div class="field"><label>&nbsp;</label><button type="button" id="buscarBoton">Buscar producto</button></div></div><div id="resultados" aria-live="polite" class="muted"></div><div class="tablewrap"><table><thead><tr><th>Producto</th><th>Piezas factura</th><th>Costo pactado OC</th><th>Costo factura</th><th>Diferencia</th><th>Importe factura</th><th>Quitar</th></tr></thead><tbody id="lineas"></tbody></table></div><p id="resumenConciliacionOc" class="alert" aria-live="polite">Selecciona una orden para comparar montos.</p><p class="muted">La comparación presentada es de costos base y subtotal por piezas, sin calcular impuestos o descuentos. Los totales fiscales definitivos deben contrastarse contra la factura antes de aplicar al inventario.</p></fieldset>
 <button type="submit" id="guardar">Registrar entrada general</button>
 </form></section>
 <?php endif;?>
@@ -234,7 +234,7 @@ async function precargarOC(){
    if(!response.ok||!data.ok)throw new Error(data.error||'No se pudo recuperar la orden.');
    if(seq!==ocLoadSeq)return;
    const prev=new Map();
-   for(const item of data.productos){prev.set(String(item.id),{...item,qty:Number(item.qty)});}
+   for(const item of data.productos){prev.set(String(item.id),{...item,costo_oc:String(item.costo??'0'),qty:Number(item.qty)});}
    if(prev.size===0)throw new Error('La orden ya está facturada en su totalidad; revisa el historial para los faltantes físicos.');
    productos.clear();for(const [k,v] of prev)productos.set(k,v);
    get('proveedor_id').value=String(data.orden.proveedor_id);
@@ -268,19 +268,27 @@ function dibujar(){
   const inicio=paginaFactura*filasPorPaginaFactura;
   for(const p of todos.slice(inicio,inicio+filasPorPaginaFactura)){
     const tr=document.createElement('tr');const td=document.createElement('td');td.textContent=p.codigo+' · '+p.descripcion;
-    const cant=document.createElement('td'),q=document.createElement('input');q.type='number';q.name='cantidad[]';q.min='1';q.max=String(p.disponible??10000000);q.step='1';q.required=true;q.value=p.qty??1;
-    q.addEventListener('input',()=>{p.qty=q.value;});cant.append(q);
+    const pactado=document.createElement('td');pactado.textContent=p.costo_oc!==undefined?'$'+Number(p.costo_oc).toFixed(4):'—';const diferencia=document.createElement('td');diferencia.textContent=p.costo_oc!==undefined?'$'+(Number(p.costo||0)-Number(p.costo_oc||0)).toFixed(4):'—';const importe=document.createElement('td');importe.textContent='$'+(Number(p.qty||0)*Number(p.costo||0)).toFixed(2);const cant=document.createElement('td'),q=document.createElement('input');q.type='number';q.name='cantidad[]';q.min='1';q.max=String(p.disponible??10000000);q.step='1';q.required=true;q.value=p.qty??1;
+    q.addEventListener('input',()=>{p.qty=q.value;importe.textContent='$'+(Number(p.qty||0)*Number(p.costo||0)).toFixed(2);actualizarTotales();});cant.append(q);
     const cos=document.createElement('td'),c=document.createElement('input');c.type='number';c.name='costo[]';c.min='0';c.max='999999999';c.step='.0001';c.required=true;c.value=p.costo??'0.0000';
-    c.addEventListener('input',()=>{p.costo=c.value;});cos.append(c);
+    c.addEventListener('input',()=>{p.costo=c.value;diferencia.textContent=p.costo_oc!==undefined?'$'+(Number(p.costo||0)-Number(p.costo_oc||0)).toFixed(4):'—';importe.textContent='$'+(Number(p.qty||0)*Number(p.costo||0)).toFixed(2);actualizarTotales();});cos.append(c);
     const rm=document.createElement('td'),btn=document.createElement('button');btn.type='button';btn.textContent='Quitar';
     btn.addEventListener('click',()=>{productos.delete(String(p.id));dibujar()});rm.append(btn);
-    tr.append(td,cant,cos,rm);tbody.append(tr);
+    tr.append(td,cant,pactado,cos,diferencia,importe,rm);tbody.append(tr);
   }
   const title=document.createElement('span');title.textContent=`${todos.length} artículos · página ${paginaFactura+1} de ${paginas}`;
   const b=document.createElement('button');b.type='button';b.className='btn alt';b.textContent='Anterior';b.disabled=paginaFactura===0;b.addEventListener('click',()=>{paginaFactura--;dibujar()});
   const n=document.createElement('button');n.type='button';n.className='btn alt';n.textContent='Siguiente';n.disabled=paginaFactura>=paginas-1;n.addEventListener('click',()=>{paginaFactura++;dibujar()});
-  controlesFactura.append(title,b,n);
+  controlesFactura.append(title,b,n);actualizarTotales();
 }
+function actualizarTotales(){
+ const data=[...productos.values()];const suma=data.reduce((v,p)=>v+Number(p.qty||0)*Number(p.costo||0),0);
+ const negociado=data.filter(p=>p.costo_oc!==undefined).reduce((v,p)=>v+Number(p.qty||0)*Number(p.costo_oc||0),0);
+ const piezas=data.reduce((v,p)=>v+Number(p.qty||0),0);
+ const res=document.getElementById('resumenConciliacionOc');if(!res)return;
+ res.textContent=`Artículos: ${data.length} · Piezas factura: ${piezas.toLocaleString('es-MX')} · Subtotal factura: $${suma.toFixed(2)} · Subtotal negociado comparable: $${negociado.toFixed(2)} · Diferencia: $${(suma-negociado).toFixed(2)} (sin impuestos ni descuentos)`;
+}
+
 async function buscar(){const q=document.getElementById('buscar').value.trim();if(q.length<2){resultados.textContent='Escribe al menos dos caracteres.';return}resultados.textContent='Buscando...';try{const r=await fetch('erp_facturas.php?ajax=productos&q='+encodeURIComponent(q));const data=await r.json();if(!r.ok)throw new Error(data.error||'Sin acceso');resultados.replaceChildren();for(const p of data.productos){const b=document.createElement('button');b.type='button';b.className='btn alt';b.style.margin='4px';b.textContent=p.codigo+' · '+p.descripcion;b.addEventListener('click',()=>{if(Number(selectOC.value)>0&&!productos.has(String(p.id))){alert('Con una orden seleccionada sólo puedes capturar productos incluidos en ella.');return;}/* GYD_BUSQUEDA_FACTURA_SIN_TOPE_V1 */productos.set(String(p.id),{...p,qty:1});dibujar()});resultados.append(b)}if(!data.productos.length)resultados.textContent='Sin resultados.';}catch(e){resultados.textContent='Error al buscar: '+e.message}}
 document.getElementById('buscarBoton').addEventListener('click',buscar);document.getElementById('buscar').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buscar()}});
 /* G&D: vista previa de importación; nunca registra la factura desde este botón. */

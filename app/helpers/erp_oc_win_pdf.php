@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__.'/erp_oc_win.php';
+
+// GYD_OC_PDF_PROFESIONAL_V1: plantillas de compra A4 horizontal, firmas Compras/Dueño/Gerente.
+require_once __DIR__.'/gyd_oc_pdf_profesional.php';
 function ocw_pdf_escape(string $s):string {
  $s=preg_replace('/\s+/u',' ',trim($s))??'';$w=@iconv('UTF-8','Windows-1252//TRANSLIT//IGNORE',$s);
  return str_replace(['\\','(',')'],['\\\\','\(','\)'],$w===false?'':$w);
@@ -21,11 +24,34 @@ function ocw_pdf_right(float $right,float $y,string $txt,int $size=9,bool $bold=
 }
 function ocw_pdf_build(PDO $db,int $id,array $usuario,bool $mostrarCostos=true):string {
  $data=ocw_order($db,$id,$usuario);$o=$data['orden'];
+ // Nombre para firma física del gerente destinatario; no significa que recibió.
+ try { $o['oc_gerente_destino_nombre']=gyd_oc_pdf_nombre_gerente($db,(string)($o['destino']??'')); }
+ catch (Throwable $e) { error_log('Consulta gerente OC para PDF: '.$e->getMessage()); $o['oc_gerente_destino_nombre']=''; }
+
  if(ocw_role($usuario)==='GERENTE'&&!gd_oc_esta_lista((string)$o['estado'],$o['autorizacion']??null)){http_response_code(403);exit('Orden no disponible.');}
  return ocw_pdf_compose($o,$data['lineas'],$mostrarCostos);
 }
 /** Constructor PDF independiente del controlador, permite previsualizar y probar sin base de datos. */
+// GYD_OC_FIRMAS_CENTRADAS_V1: centrado exacto según las métricas WinAnsi de Helvetica y Helvetica-Bold.
+function gyd_oc_pdf_centrar_texto(float $centro, float $y, string $txt, int $size=9, bool $bold=false): string {
+    static $wRegular=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,350,556,350,222,556,333,1000,556,556,333,1000,667,333,1000,350,611,350,350,222,222,333,333,350,556,1000,333,1000,500,333,944,350,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,333,333,333,556,537,278,333,333,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500];
+    static $wBold=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,350,556,350,278,556,500,1000,556,556,333,1000,667,333,1000,350,611,350,350,278,278,500,500,350,556,1000,333,1000,556,333,944,350,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,333,333,333,611,556,278,333,333,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556];
+    $normalizada=preg_replace('/\s+/u',' ',trim($txt))??'';
+    $win=@iconv('UTF-8','Windows-1252//TRANSLIT//IGNORE',$normalizada);
+    if($win===false) $win=$normalizada;
+    $metrics=$bold?$wBold:$wRegular;
+    $ancho=0;
+    for($i=0,$n=strlen($win);$i<$n;$i++) {
+        $idx=ord($win[$i])-32;
+        $ancho+=($idx>=0 && $idx<count($metrics)) ? $metrics[$idx] : 556;
+    }
+    return ocw_pdf_t($centro-$size*$ancho/2000.0,$y,$txt,$size,$bold);
+}
+
 function ocw_pdf_compose(array $o,array $items,bool $mostrarCostos=true):string {
+ // Plantilla profesional; el cuerpo anterior queda conservado para restauración.
+ return gyd_oc_pdf_profesional($o,$items,$mostrarCostos);
+
  $nombre=(string)$o['proveedor'];$dest=ocw_destinos()[$o['destino']]??$o['destino'];$fecha=date('d/m/Y',strtotime($o['fecha']));$entrega=date('d-m-Y',strtotime($o['fecha_entrega']??$o['fecha']));
  $emitio=trim((string)($o['emitio']??''))?:'SIN REGISTRAR';
  $autorizo=gd_oc_requiere_autorizacion()?($o['autorizacion']==='AUTORIZADA'?((string)($o['autorizo']??'DIRECCIÓN')):'PENDIENTE'):'';
@@ -81,10 +107,15 @@ function ocw_pdf_compose(array $o,array $items,bool $mostrarCostos=true):string 
  $body.=ocw_pdf_t(118,$y-($mostrarCostos?125:28),number_format(count($items),2).' Artículos  '.number_format($sumCajas,2).' Cajas  '.number_format($sumPiezas,2).' Piezas.',8,true);
  // Las observaciones son texto libre y pueden contener precios: no se muestran en la versión sin costos.
  $ob=trim((string)($o['observaciones']??''));if($mostrarCostos&&$ob!==''){$body.=ocw_pdf_t(35,$y-150,'Observaciones: '.mb_substr($ob,0,95),7);}
- $sigY=140;$body.=ocw_pdf_l(70,$sigY+30,280,$sigY+30).ocw_pdf_l(299,$sigY+30,508,$sigY+30);
- $body.=ocw_pdf_t(155,$sigY+18,'Emitio',9,true).ocw_pdf_t(360,$sigY+18,$tituloSegundaFirma,9,true);
- $body.=ocw_pdf_t(90,$sigY,mb_substr($emitio,0,40),9,true).ocw_pdf_t(314,$sigY,mb_substr($autorizo,0,40),9,true);
- $body.=ocw_pdf_l(182,70,400,70).ocw_pdf_t(268,55,'Vo.Bo.',9,true);
+ $sigY=140;
+ // GYD_OC_FIRMANTE_DUENO_V2: nombre documental para firma física, sin aprobación electrónica.
+ $firmanteDueno=trim((string)($o['oc_firmante_nombre']??''));
+ $autorizo=$firmanteDueno!==''?$firmanteDueno:'SIN DESIGNAR';
+ $tituloSegundaFirma='Autorizó';
+$body.=ocw_pdf_l(70,$sigY+30,280,$sigY+30).ocw_pdf_l(299,$sigY+30,508,$sigY+30);
+ $body.=gyd_oc_pdf_centrar_texto(175.0,$sigY+18,'Emitio',9,true).gyd_oc_pdf_centrar_texto(403.5,$sigY+18,$tituloSegundaFirma,9,true);
+ $body.=gyd_oc_pdf_centrar_texto(175.0,$sigY,mb_substr($emitio,0,40),9,true).gyd_oc_pdf_centrar_texto(403.5,$sigY,mb_substr($autorizo,0,40),9,true);
+ $body.=ocw_pdf_l(182,70,400,70).gyd_oc_pdf_centrar_texto(291.0,55,'Vo.Bo.',9,true);
  if(!gd_oc_esta_lista((string)$o['estado'],$o['autorizacion']??null)){$body.=ocw_pdf_t(180,42,'BORRADOR - NO ENVIAR',9,true);}
  $finish(true);
  $objects=[];$add=function(string $v)use(&$objects):int{$objects[]=$v;return count($objects);};$catalog=$add('');$pagesId=$add('');

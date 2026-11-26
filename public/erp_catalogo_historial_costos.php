@@ -110,4 +110,7 @@ function gd_hc_link(array $base,array $new):string{return '?'.http_build_query(a
 <?php if($resumenProv):?><section class="card"><h2>Proveedores según facturas filtradas</h2><p class="help">La siguiente tabla excluye las cotizaciones de OC y se ordena por importe documental calculado.</p><div class="scroll"><table><thead><tr><th>Proveedor</th><th>Facturas</th><th>Piezas</th><th>Importe calculado</th><th>Productos distintos</th></tr></thead><tbody><?php foreach($resumenProv as $r):?><tr><td><?=gd_hc_e($r['proveedor'])?></td><td><?=number_format((int)$r['facturas'])?></td><td><?=number_format((int)$r['piezas'])?></td><td><?=gd_hc_mon($r['importe'])?></td><td><?=number_format((int)$r['productos'])?></td></tr><?php endforeach;?></tbody></table></div></section><?php endif;?>
 <?php endif;?></main>
 <script src="assets/js/gyd_excel_reportes.js" defer></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

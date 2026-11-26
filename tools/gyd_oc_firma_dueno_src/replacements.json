@@ -1,0 +1,64 @@
+{
+  "app/helpers/erp_oc_win.php": [
+    {
+      "find": "p.telefono AS p_telefono, m.*, a.estado AS autorizacion,",
+      "replace": "p.telefono AS p_telefono, m.*, fd.usuario_id AS oc_firmante_id, fd.nombre_snapshot AS oc_firmante_nombre, a.estado AS autorizacion,"
+    },
+    {
+      "find": "LEFT JOIN erp_oc_win_meta m ON m.orden_id=o.id LEFT JOIN erp_oc_autorizaciones a",
+      "replace": "LEFT JOIN erp_oc_win_meta m ON m.orden_id=o.id LEFT JOIN erp_oc_firmante_dueno fd ON fd.orden_id=o.id LEFT JOIN erp_oc_autorizaciones a"
+    }
+  ],
+  "app/helpers/erp_oc_win_pdf.php": [
+    {
+      "find": "$autorizo=gd_oc_requiere_autorizacion()?($o['autorizacion']==='AUTORIZADA'?((string)($o['autorizo']??'DIRECCIÓN')):'PENDIENTE'):'';\n $tituloSegundaFirma=gd_oc_requiere_autorizacion()?'Autorizo':'Recepcion (Gerencia)';",
+      "replace": "// GYD_OC_FIRMANTE_DUENO: nombre para firma manuscrita, no prueba de aprobación.\n $firmanteDueno=trim((string)($o['oc_firmante_nombre']??''));\n $autorizo=$firmanteDueno!==''?$firmanteDueno:(gd_oc_requiere_autorizacion()?($o['autorizacion']==='AUTORIZADA'?((string)($o['autorizo']??'DIRECCION')):''):'');\n $tituloSegundaFirma='Autorizacion (firma)';"
+    },
+    {
+      "find": "$body.=ocw_pdf_t(90,$sigY,mb_substr($emitio,0,40),9,true).ocw_pdf_t(314,$sigY,mb_substr($autorizo,0,40),9,true);",
+      "replace": "$body.=ocw_pdf_t(90,$sigY,mb_substr($emitio,0,40),9,true).ocw_pdf_t(314,$sigY,mb_substr($autorizo,0,40),9,true);\n $body.=ocw_pdf_t(309,$sigY-15,'Nombre asignado; firma manuscrita pendiente',7);"
+    }
+  ],
+  "public/erp_oc_win.php": [
+    {
+      "find": "require_once __DIR__.'/../app/helpers/erp_catalogo_iva.php';",
+      "replace": "require_once __DIR__.'/../app/helpers/erp_catalogo_iva.php';\nrequire_once __DIR__.'/../app/helpers/erp_oc_firma_dueno.php'; // GYD_OC_FIRMANTE_DUENO_V1"
+    },
+    {
+      "find": "if($act==='crear'){\n   $proveedor=",
+      "replace": "if($act==='crear'){\n   $ocFirmaId=(int)($_POST['oc_firma_dueno_id']??0);\n   $ocFirma=$ocFirmaId>0?ocfd_usuario($db,$ocFirmaId):null;\n   $proveedor="
+    },
+    {
+      "find": "   if(!gd_oc_requiere_autorizacion()) {\n    $db->prepare(\"UPDATE erp_ordenes_compra",
+      "replace": "   if($ocFirma!==null)ocfd_guardar($db,$id,$ocFirma,(int)$user['id']); // Sólo asignación documental.\n   if(!gd_oc_requiere_autorizacion()) {\n    $db->prepare(\"UPDATE erp_ordenes_compra"
+    },
+    {
+      "find": "  if($act==='liberar' && !gd_oc_requiere_autorizacion()){",
+      "replace": "  if($act==='guardar_firmante'){\n   $id=(int)($_POST['orden_id']??0);\n   $uid=(int)($_POST['oc_firma_dueno_id']??0);\n   if($id<1)throw new RuntimeException('Orden inválida.');\n   $ocFirma=ocfd_usuario($db,$uid);\n   $db->beginTransaction();\n   $st=$db->prepare('SELECT destino FROM erp_ordenes_compra WHERE id=? FOR UPDATE');$st->execute([$id]);$ocDest=$st->fetchColumn();\n   if($ocDest===false || !ocw_can_read($db,$user,(string)$ocDest))throw new RuntimeException('No puedes modificar esta orden.');\n   $c=$db->prepare(\"SELECT estado FROM erp_oc_cierres_controlados WHERE orden_id=? LIMIT 1\");$c->execute([$id]);\n   if($c->fetchColumn()==='CERRADA')throw new RuntimeException('No se puede cambiar la firma de una orden cerrada.');\n   ocfd_guardar($db,$id,$ocFirma,(int)$user['id']);\n   $db->commit();\n   $_SESSION['ocw_flash']='Nombre para firma actualizado. La orden no fue autorizada digitalmente ni cambió de estado.';\n   header('Location: erp_oc_win.php?ver='.$id,true,303);exit;\n  }\n  if($act==='liberar' && !gd_oc_requiere_autorizacion()){ "
+    },
+    {
+      "find": " $proveedores=$editable?$db->query('SELECT id,nombre,direccion,telefono FROM proveedores WHERE estado=1 ORDER BY nombre')->fetchAll(PDO::FETCH_ASSOC):[];",
+      "replace": " $firmantes=$editable?ocfd_usuarios($db):[];\n $proveedores=$editable?$db->query('SELECT id,nombre,direccion,telefono FROM proveedores WHERE estado=1 ORDER BY nombre')->fetchAll(PDO::FETCH_ASSOC):[];"
+    },
+    {
+      "find": "$detalle=$detalle??[];}",
+      "replace": "$detalle=$detalle??[];$firmantes=$firmantes??[];}"
+    },
+    {
+      "find": "</style></head><body>",
+      "replace": "/* GYD_OC_FIRMANTE_DUENO_V1 */\n.ocfd-picker{display:flex;gap:8px;align-items:center}.ocfd-picker input{min-width:0;flex:1}.ocfd-picker button{flex-shrink:0}\n.ocfd-help{font-size:11px;color:#59738a;margin:2px 0 0}\n.ocfd-saved{padding:12px 14px;background:#f6faff;border:1px solid #d8e7f4;border-radius:10px;margin:12px 0;font-size:13px}\n.ocfd-saved form{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-top:9px}.ocfd-saved input[readonly]{min-height:38px;border:1px solid #cbdaea;border-radius:8px;background:#fff;padding:8px;min-width:230px}\n#ocfdModal[hidden]{display:none!important}#ocfdModal{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;background:#071d34a8;padding:15px}\n.ocfd-dialog{width:min(610px,100%);max-height:88vh;overflow:auto;border-radius:15px;background:#fff;padding:23px;box-shadow:0 24px 70px #0005}\n.ocfd-dialog h2{margin:0 0 4px;color:#173d63}.ocfd-dialog p{margin:0 0 14px;color:#5d7690;font-size:13px}\n#ocfdSearch{width:100%;padding:12px;border:1px solid #b8ccdd;border-radius:9px;font:inherit;margin-bottom:10px}\n#ocfdItems{display:grid;gap:7px;max-height:48vh;overflow:auto}.ocfd-option{width:100%;justify-content:space-between;text-align:left;background:#f2f7fc!important;color:#224b6b!important;border:1px solid #d5e5f2!important;white-space:normal!important}\n.ocfd-option:hover,.ocfd-option:focus{background:#e3f0fd!important}.ocfd-foot{display:flex;justify-content:flex-end;margin-top:15px}\n</style></head><body>"
+    },
+    {
+      "find": "  <div class=\"saved-actions\">",
+      "replace": "  <div class=\"ocfd-saved\">\n   <strong>Quién autoriza (nombre para firma en PDF):</strong> <?=ocw_e(($vista['oc_firmante_nombre']??'')?:'Sin dueño designado')?>\n   <div class=\"ocfd-help\">El nombre es documental. No realiza aprobación electrónica ni confirma que ya se haya firmado.</div>\n   <?php if($editable):?><form method=\"post\" class=\"ocfd-form\" action=\"erp_oc_win.php?ver=<?=(int)$vista['id']?>\">\n    <input type=\"hidden\" name=\"csrf\" value=\"<?=ocw_e(ocw_token())?>\">\n    <input type=\"hidden\" name=\"accion\" value=\"guardar_firmante\"><input type=\"hidden\" name=\"orden_id\" value=\"<?=(int)$vista['id']?>\">\n    <input type=\"hidden\" name=\"oc_firma_dueno_id\" id=\"ocfdSavedId\" value=\"<?=(int)($vista['oc_firmante_id']??0)?>\">\n    <input type=\"text\" id=\"ocfdSavedName\" value=\"<?=ocw_e($vista['oc_firmante_nombre']??'')?>\" placeholder=\"Selecciona un dueño\" readonly>\n    <button type=\"button\" class=\"btn alt\" data-ocfd-open data-ocfd-id=\"ocfdSavedId\" data-ocfd-name=\"ocfdSavedName\">Elegir dueño</button>\n    <button type=\"submit\" class=\"btn\">Guardar nombre</button>\n   </form><?php endif;?>\n  </div>\n  <div class=\"saved-actions\">"
+    },
+    {
+      "find": "   <div class=\"field\"><label for=\"autorizo_info\">Estado del trámite</label><input id=\"autorizo_info\" readonly value=\"<?=gd_oc_requiere_autorizacion()?'Requiere autorización de Dirección':'Sin autorización previa · Pedido acordado'?>\"></div>",
+      "replace": "   <div class=\"field\"><label for=\"autorizo_info\">Estado del trámite</label><input id=\"autorizo_info\" readonly value=\"<?=gd_oc_requiere_autorizacion()?'Requiere autorización de Dirección':'Sin autorización previa · Pedido acordado'?>\"></div>\n   <div class=\"field span2\"><label for=\"ocfdNewName\">Quién autoriza · nombre para firma en PDF</label>\n    <div class=\"ocfd-picker\"><input type=\"text\" id=\"ocfdNewName\" readonly placeholder=\"Seleccionar usuario Dueño\"><input type=\"hidden\" name=\"oc_firma_dueno_id\" id=\"ocfdNewId\" value=\"0\"><button type=\"button\" class=\"btn alt\" data-ocfd-open data-ocfd-id=\"ocfdNewId\" data-ocfd-name=\"ocfdNewName\">Elegir dueño</button></div>\n    <span class=\"ocfd-help\">Sin aprobación electrónica. El dueño seleccionado figurará en la línea para firma del PDF.</span>\n   </div>"
+    },
+    {
+      "find": "</main>\n<script>\n(function(){const filter=document.querySelector('#filtrarOrdenes');",
+      "replace": "</main>\n<?php if($editable):?><div id=\"ocfdModal\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"ocfdTitle\" hidden>\n <div class=\"ocfd-dialog\"><h2 id=\"ocfdTitle\">Elegir dueño para firma de la orden</h2>\n <p>Selecciona un usuario Dueño/Dirección activo. Esto coloca su nombre en el PDF, pero no aprueba la OC electrónicamente.</p>\n <label for=\"ocfdSearch\" class=\"sr-only\">Buscar dueño</label><input id=\"ocfdSearch\" type=\"search\" placeholder=\"Filtrar por nombre o rol...\" autocomplete=\"off\">\n <div id=\"ocfdItems\">\n <?php foreach($firmantes as $firmante):?><button class=\"ocfd-option\" type=\"button\" data-ocfd-user=\"<?=(int)$firmante['id']?>\" data-ocfd-label=\"<?=ocw_e($firmante['nombre'])?>\" data-ocfd-search=\"<?=ocw_e(mb_strtolower($firmante['nombre'].' '.$firmante['rol'],'UTF-8'))?>\"><span><?=ocw_e($firmante['nombre'])?></span><small><?=ocw_e($firmante['rol'])?></small></button><?php endforeach;?>\n <?php if(!$firmantes):?><p>No hay usuarios activos con rol Dueño, Propietario o Dirección. Configura primero ese usuario.</p><?php endif;?>\n </div><div class=\"ocfd-foot\"><button type=\"button\" class=\"btn alt\" id=\"ocfdClose\">Cerrar</button></div>\n </div>\n</div><?php endif;?>\n<script>\n// GYD_OC_FIRMANTE_DUENO_V1: selector de nombre para firma, sin cambios de estado.\n(()=>{const modal=document.getElementById('ocfdModal');if(!modal)return;\n const search=document.getElementById('ocfdSearch'),options=[...modal.querySelectorAll('[data-ocfd-user]')];let idTarget=null,nameTarget=null,previous=null;\n function close(){modal.hidden=true;search.value='';options.forEach(b=>b.hidden=false);previous?.focus();}\n document.addEventListener('click',e=>{const btn=e.target.closest('[data-ocfd-open]');if(!btn)return;\n  idTarget=document.getElementById(btn.dataset.ocfdId);nameTarget=document.getElementById(btn.dataset.ocfdName);\n  if(!idTarget||!nameTarget)return;previous=btn;modal.hidden=false;search.focus();});\n search.addEventListener('input',()=>{const q=search.value.toLocaleLowerCase('es-MX').trim();options.forEach(b=>b.hidden=!b.dataset.ocfdSearch.includes(q));});\n options.forEach(b=>b.addEventListener('click',()=>{idTarget.value=b.dataset.ocfdUser;nameTarget.value=b.dataset.ocfdLabel;idTarget.dispatchEvent(new Event('change',{bubbles:true}));close();}));\n document.getElementById('ocfdClose').addEventListener('click',close);\n modal.addEventListener('click',e=>{if(e.target===modal)close();});\n document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden){e.stopPropagation();close();}});\n})();\n</script>\n<script>\n(function(){const filter=document.querySelector('#filtrarOrdenes');"
+    }
+  ]
+}

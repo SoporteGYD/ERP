@@ -1,0 +1,22 @@
+G&D ERP - AVISOS DE LLEGADA DE ORDEN DE COMPRA EN CAMPANA GLOBAL
+
+Pre-requisitos:
+- Fase 1 de órdenes y avisos instalada (tabla erp_oc_flujo_mensajes).
+- Portal del Gerente rediseñado.
+- Centro global de notificaciones existente.
+- Respaldar MySQL antes de instalar.
+
+Copiar carpeta tools al proyecto y ejecutar en PowerShell:
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_notificaciones_llegada_oc.php" --check
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_notificaciones_llegada_oc.php" --apply
+& "C:\xampp\php\php.exe" "C:\xampp\htdocs\almacen-farmacia2\tools\instalar_notificaciones_llegada_oc.php" --verify
+
+Funciones:
+- El gerente hace clic en Notificar llegada; se crea una fila LLEGADA para cada usuario activo de COMPRAS, ADMINISTRADOR, ADMIN y DIRECCION.
+- La campana existente consulta los avisos dirigidos personalmente a cada cuenta.
+- El centro muestra folio, proveedor, gerente, sucursal/destino, nota y acceso al seguimiento de la orden.
+- Marcar leído modifica únicamente erp_oc_flujo_mensajes.leido_en de ese destinatario.
+- El aviso no cambia stock, facturas, órdenes ni saldos pendientes.
+- Se registran posteriores entregas de la misma OC (el portal conserva prevención de avisos repetidos dentro de 5 minutos).
+
+NOTA: Esta entrega integra la campana con los avisos de llegada. No sustituye todavía las pantallas de verificación y aplicación de facturas ni ejecuta la migración del flujo único de facturación.

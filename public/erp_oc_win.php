@@ -4,7 +4,11 @@ require_once __DIR__.'/../app/helpers/auth.php';
 require_once __DIR__.'/../app/config/database.php';
 require_once __DIR__.'/../app/helpers/erp_oc_win.php';
 require_once __DIR__.'/../app/helpers/erp_catalogo_iva.php';
+require_once __DIR__.'/../app/helpers/erp_oc_firma_dueno.php'; // GYD_OC_FIRMANTE_DUENO_V1
 requireLogin();$user=currentUser()?:[];ocw_guard($user);
+// Los gerentes consultan la bandeja segura, no la vista interna con importes.
+if(ocw_role($user)==='GERENTE'){header('Location: erp_oc_flujo.php',true,303);exit;}
+
 $editable=ocw_can_edit($user);$error='';$flash=$_SESSION['ocw_flash']??'';unset($_SESSION['ocw_flash']);
 try{
  $db=(new Database())->connect();
@@ -22,6 +26,8 @@ try{
   if(!$editable){http_response_code(403);exit('No autorizado.');}ocw_check_token($_POST['csrf']??null);
   $act=(string)($_POST['accion']??'');
   if($act==='crear'){
+   $ocFirmaId=(int)($_POST['oc_firma_dueno_id']??0);
+   $ocFirma=$ocFirmaId>0?ocfd_usuario($db,$ocFirmaId):null;
    $proveedor=(int)($_POST['proveedor_id']??0);$destino=(string)($_POST['destino']??'');
    if(!array_key_exists($destino,ocw_destinos()))throw new RuntimeException('El almacén no es válido.');
    $fecha=ocw_date($_POST['fecha']??'');$entrega=ocw_date($_POST['fecha_entrega']??'');
@@ -71,9 +77,25 @@ try{
    if(!gd_oc_requiere_autorizacion()) {
     $db->prepare("UPDATE erp_ordenes_compra SET estado='EMITIDA' WHERE id=? AND estado='BORRADOR'")->execute([$id]);
    }
+   if($ocFirma!==null)ocfd_guardar($db,$id,$ocFirma,(int)$user['id']); // Firma documental, no aprobación.
    $db->commit();$_SESSION['ocw_flash']='Orden '.$folio.' '.(gd_oc_requiere_autorizacion()?'guardada como borrador; pendiente de aprobación.':'registrada y disponible para enviar al gerente, recibir y facturar; no requiere autorización.').' El inventario no fue modificado.';header('Location: erp_oc_win.php?ver='.$id,true,303);exit;
   }
-  if($act==='liberar' && !gd_oc_requiere_autorizacion()){
+  if($act==='guardar_firmante'){
+   $id=(int)($_POST['orden_id']??0);
+   $uid=(int)($_POST['oc_firma_dueno_id']??0);
+   if($id<1)throw new RuntimeException('Orden inválida.');
+   $ocFirma=ocfd_usuario($db,$uid);
+   $db->beginTransaction();
+   $st=$db->prepare('SELECT destino FROM erp_ordenes_compra WHERE id=? FOR UPDATE');$st->execute([$id]);$ocDest=$st->fetchColumn();
+   if($ocDest===false || !ocw_can_read($db,$user,(string)$ocDest))throw new RuntimeException('No puedes modificar esta orden.');
+   $c=$db->prepare("SELECT estado FROM erp_oc_cierres_controlados WHERE orden_id=? LIMIT 1");$c->execute([$id]);
+   if($c->fetchColumn()==='CERRADA')throw new RuntimeException('No se puede cambiar la firma de una orden cerrada.');
+   ocfd_guardar($db,$id,$ocFirma,(int)$user['id']);
+   $db->commit();
+   $_SESSION['ocw_flash']='Nombre para firma actualizado. La orden no fue autorizada digitalmente ni cambió de estado.';
+   header('Location: erp_oc_win.php?ver='.$id,true,303);exit;
+  }
+  if($act==='liberar' && !gd_oc_requiere_autorizacion()){ 
    // Liberación manual, explícita, de BORRADORES preexistentes. Nunca se liberan todas en lote.
    $id=filter_var($_POST['orden_id']??null,FILTER_VALIDATE_INT,['options'=>['min_range'=>1]]);
    if(!$id)throw new RuntimeException('Orden no válida.');
@@ -103,13 +125,14 @@ try{
   }
   throw new RuntimeException('Acción no válida.');
  }
+ $firmantes=$editable?ocfd_usuarios($db):[];
  $proveedores=$editable?$db->query('SELECT id,nombre,direccion,telefono FROM proveedores WHERE estado=1 ORDER BY nombre')->fetchAll(PDO::FETCH_ASSOC):[];
  if($editable){$ordenes=$db->query("SELECT o.id,o.folio,o.fecha,o.destino,o.estado,p.nombre proveedor,COALESCE(m.total_neto,o.subtotal) total,a.estado autorizacion FROM erp_ordenes_compra o JOIN proveedores p ON p.id=o.proveedor_id LEFT JOIN erp_oc_win_meta m ON m.orden_id=o.id LEFT JOIN erp_oc_autorizaciones a ON a.orden_id=o.id ORDER BY o.id DESC LIMIT 70")->fetchAll(PDO::FETCH_ASSOC);}
  else{$filtroAuth=gd_oc_requiere_autorizacion()?" AND a.estado='AUTORIZADA'":"";
   $st=$db->prepare("SELECT DISTINCT o.id,o.folio,o.fecha,o.destino,o.estado,p.nombre proveedor,COALESCE(m.total_neto,o.subtotal) total,a.estado autorizacion FROM erp_ordenes_compra o JOIN proveedores p ON p.id=o.proveedor_id LEFT JOIN erp_oc_win_meta m ON m.orden_id=o.id LEFT JOIN erp_oc_autorizaciones a ON a.orden_id=o.id JOIN erp_oc_win_gerentes g ON g.destino=o.destino AND g.usuario_id=? AND g.activo=1 WHERE o.estado='EMITIDA'".$filtroAuth." ORDER BY o.id DESC LIMIT 70");
   $st->execute([(int)$user['id']]);$ordenes=$st->fetchAll(PDO::FETCH_ASSOC);}
  $vista=null;$detalle=[];$ver=(int)($_GET['ver']??0);if($ver){$v=ocw_order($db,$ver,$user);$vista=$v['orden'];$detalle=$v['lineas'];if(!$editable&&!gd_oc_esta_lista((string)$vista['estado'],$vista['autorizacion']??null)){http_response_code(403);exit('Esta orden todavía no está emitida o disponible.');}}
-}catch(Throwable $e){if(isset($db)&&$db->inTransaction())$db->rollBack();error_log('ERP OC Win: '.$e->getMessage());$error=$e instanceof RuntimeException?$e->getMessage():'No se puede abrir Órdenes de Compra. Revisa las tablas instaladas.';$proveedores=$proveedores??[];$ordenes=$ordenes??[];$vista=$vista??null;$detalle=$detalle??[];}
+}catch(Throwable $e){if(isset($db)&&$db->inTransaction())$db->rollBack();error_log('ERP OC Win: '.$e->getMessage());$error=$e instanceof RuntimeException?$e->getMessage():'No se puede abrir Órdenes de Compra. Revisa las tablas instaladas.';$proveedores=$proveedores??[];$ordenes=$ordenes??[];$vista=$vista??null;$detalle=$detalle??[];$firmantes=$firmantes??[];}
 ?>
 <!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ERP G&amp;D · Orden de compra</title><style>
 :root{font-family:Inter,'Segoe UI',system-ui,-apple-system,Arial,sans-serif;font-size:14px;color:#1d334c;background:#f3f6fa;font-synthesis:none}
@@ -168,10 +191,21 @@ a{color:#165f9f;text-underline-offset:2px}a:hover{color:#0b3d6f}button,a.btn{fon
 .oc-costos-help{font-size:11px;line-height:1.45;color:#607b92;margin:8px 0 0}
 .oc-costos-state{font-size:11px;color:#647f96;margin:7px 0}
 .oc-costos-retry{border:1px solid #8fb1cc;background:#fff;color:#20527a;border-radius:6px;padding:5px 9px;font-size:11px;cursor:pointer}
+/* GYD_OC_FIRMANTE_DUENO_V1 */
+.ocfd-picker{display:flex;gap:8px;align-items:center}.ocfd-picker input{min-width:0;flex:1}.ocfd-picker button{flex-shrink:0}
+.ocfd-help{font-size:11px;color:#59738a;margin:2px 0 0}
+.ocfd-saved{padding:12px 14px;background:#f6faff;border:1px solid #d8e7f4;border-radius:10px;margin:12px 0;font-size:13px}
+.ocfd-saved form{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-top:9px}.ocfd-saved input[readonly]{min-height:38px;border:1px solid #cbdaea;border-radius:8px;background:#fff;padding:8px;min-width:230px}
+#ocfdModal[hidden]{display:none!important}#ocfdModal{position:fixed;inset:0;z-index:2500;display:grid;place-items:center;background:#071d34a8;padding:15px}
+.ocfd-dialog{width:min(610px,100%);max-height:88vh;overflow:auto;border-radius:15px;background:#fff;padding:23px;box-shadow:0 24px 70px #0005}
+.ocfd-dialog h2{margin:0 0 4px;color:#173d63}.ocfd-dialog p{margin:0 0 14px;color:#5d7690;font-size:13px}
+#ocfdSearch{width:100%;padding:12px;border:1px solid #b8ccdd;border-radius:9px;font:inherit;margin-bottom:10px}
+#ocfdItems{display:grid;gap:7px;max-height:48vh;overflow:auto}.ocfd-option{width:100%;justify-content:space-between;text-align:left;background:#f2f7fc!important;color:#224b6b!important;border:1px solid #d5e5f2!important;white-space:normal!important}
+.ocfd-option:hover,.ocfd-option:focus{background:#e3f0fd!important}.ocfd-foot{display:flex;justify-content:flex-end;margin-top:15px}
 </style></head><body>
 <header class="app-header"><div class="header-content"><div class="brand"><div class="brand-icon" aria-hidden="true">▤</div><div><h1>ERP G&amp;D · Órdenes de compra</h1><p>Captura y seguimiento de pedidos · Distribución G&amp;D</p></div></div>
 <nav class="top-nav" aria-label="Módulos relacionados"><a class="nav-action" href="erp_oc_win.php">+ Nueva orden</a><?php if(gd_oc_requiere_autorizacion()):?><a class="nav-action" href="erp_oc_autorizaciones.php">Autorizaciones</a><?php endif;?>
-<a class="nav-action" href="erp_analisis_compras.php">Análisis de compras</a> <a class="nav-action" href="erp_oc_cierre_controlado.php">Cierre de OC</a><!-- GYD_GCC_MENU_OC_V1 --> <a class="nav-action" href="erp_conciliacion_integral.php">Conciliación integral</a><!-- GYD_CI_MENU_OC_V1 --><?php if($editable):?><a class="nav-action" href="erp_compras_avisos.php">🔔 Avisos de Bodega <?php if($ocavNavCont>0):?><strong style="background:#c62040;color:white;border-radius:99px;padding:1px 7px" aria-label="Avisos pendientes"><?=(int)$ocavNavCont?></strong><?php endif;?></a><?php endif;?><details class="nav-more"><summary class="nav-action">Otros módulos ▾</summary><div class="nav-pop"><?php if(ocw_can_admin($user)):?><a href="erp_oc_win_gerentes.php">Gerentes destinatarios</a><?php endif;?><a href="erp_facturas.php">Entradas generales</a><a href="erp_recepciones_pendientes.php">Recepciones</a></div></details><a class="nav-action" href="<?= ocw_role($user)==='COMPRAS'?'erp_compras_inicio.php':'dashboard.php' ?>">← Volver al ERP</a></nav></div></header>
+<a class="nav-action" href="erp_analisis_compras.php">Análisis de compras</a> <a class="nav-action" href="erp_oc_cierre_controlado.php">Cierre de OC</a><!-- GYD_GCC_MENU_OC_V1 --> <a class="nav-action" href="erp_conciliacion_integral.php">Conciliación integral</a><!-- GYD_CI_MENU_OC_V1 --><?php if($editable):?><a class="nav-action" href="erp_compras_avisos.php">🔔 Avisos de Bodega <?php if($ocavNavCont>0):?><strong style="background:#c62040;color:white;border-radius:99px;padding:1px 7px" aria-label="Avisos pendientes"><?=(int)$ocavNavCont?></strong><?php endif;?></a><?php endif;?><details class="nav-more"><summary class="nav-action">Otros módulos ▾</summary><div class="nav-pop"><?php if(ocw_can_admin($user)):?><a href="erp_oc_win_gerentes.php">Gerentes destinatarios</a><?php endif;?><a href="erp_facturas.php">Entradas generales</a><a href="erp_oc_flujo.php">Avisos e ingresos solicitados</a></div></details><a class="nav-action" href="<?= ocw_role($user)==='COMPRAS'?'erp_compras_inicio.php':'dashboard.php' ?>">← Volver al ERP</a></nav></div></header>
 <main class="shell">
 <?php if($error):?><div class="notice fail" role="alert"><?=ocw_e($error)?></div><?php endif;?>
 <?php if($flash):?><div class="notice ok" role="status"><?=ocw_e($flash)?></div><?php endif;?>
@@ -182,11 +216,23 @@ a{color:#165f9f;text-underline-offset:2px}a:hover{color:#0b3d6f}button,a.btn{fon
  </div>
  <div class="card-body">
   <div class="saved-details"><span><strong>Proveedor:</strong> <?=ocw_e($vista['proveedor'])?></span><span><strong>Destino:</strong> <?=ocw_e(ocw_destinos()[$vista['destino']]??$vista['destino'])?></span><span><strong>Entrega:</strong> <?=ocw_e($vista['fecha_entrega']??$vista['fecha'])?></span></div>
+  <div class="ocfd-saved">
+   <strong>Quién autoriza (nombre para firma en PDF):</strong> <?=ocw_e(($vista['oc_firmante_nombre']??'')?:'Sin dueño designado')?>
+   <div class="ocfd-help">El nombre es documental. No realiza aprobación electrónica ni confirma que ya se haya firmado.</div>
+   <?php if($editable):?><form method="post" class="ocfd-form" action="erp_oc_win.php?ver=<?=(int)$vista['id']?>">
+    <input type="hidden" name="csrf" value="<?=ocw_e(ocw_token())?>">
+    <input type="hidden" name="accion" value="guardar_firmante"><input type="hidden" name="orden_id" value="<?=(int)$vista['id']?>">
+    <input type="hidden" name="oc_firma_dueno_id" id="ocfdSavedId" value="<?=(int)($vista['oc_firmante_id']??0)?>">
+    <input type="text" id="ocfdSavedName" value="<?=ocw_e($vista['oc_firmante_nombre']??'')?>" placeholder="Selecciona un dueño" readonly>
+    <button type="button" class="btn alt" data-ocfd-open data-ocfd-id="ocfdSavedId" data-ocfd-name="ocfdSavedName">Elegir dueño</button>
+    <button type="submit" class="btn">Guardar nombre</button>
+   </form><?php endif;?>
+  </div>
   <div class="saved-actions">
    <a class="btn btn-small" href="erp_oc_win_pdf.php?id=<?=(int)$vista['id']?>&amp;costos=si" target="_blank" rel="noopener">PDF con costos</a>
    <a class="btn alt btn-small" href="erp_oc_win_pdf.php?id=<?=(int)$vista['id']?>&amp;costos=no" target="_blank" rel="noopener">PDF sin costos</a>
    <?php if($editable&&gd_oc_esta_lista((string)$vista['estado'],$vista['autorizacion']??null)):?>
-    <a class="btn green btn-small" href="erp_oc_win_enviar.php?id=<?=(int)$vista['id']?>">Enviar solo a gerentes</a>
+    <a class="btn green btn-small" href="erp_oc_flujo.php">Distribuir por ERP a gerentes y Dirección</a>
     <a class="btn outline btn-small" href="erp_facturas.php?orden_id=<?=(int)$vista['id']?>">Registrar factura</a>
    <?php endif;?>
   </div>
@@ -211,6 +257,10 @@ a{color:#165f9f;text-underline-offset:2px}a:hover{color:#0b3d6f}button,a.btn{fon
    <div class="field"><label for="folio_info">Folio</label><input id="folio_info" readonly value="Se asigna al guardar"></div>
    <div class="field"><label for="emisor_info">Emitió</label><input id="emisor_info" readonly value="<?=ocw_e($user['nombre']??'Usuario')?>"></div>
    <div class="field"><label for="autorizo_info">Estado del trámite</label><input id="autorizo_info" readonly value="<?=gd_oc_requiere_autorizacion()?'Requiere autorización de Dirección':'Sin autorización previa · Pedido acordado'?>"></div>
+   <div class="field span2"><label for="ocfdNewName">Quién autoriza · nombre para firma en PDF</label>
+    <div class="ocfd-picker"><input type="text" id="ocfdNewName" readonly placeholder="Seleccionar usuario Dueño"><input type="hidden" name="oc_firma_dueno_id" id="ocfdNewId" value="0"><button type="button" class="btn alt" data-ocfd-open data-ocfd-id="ocfdNewId" data-ocfd-name="ocfdNewName">Elegir dueño</button></div>
+    <span class="ocfd-help">Sin aprobación electrónica. El dueño seleccionado figurará en la línea para firma del PDF.</span>
+   </div>
    <div class="field"><label for="oc_fecha">Fecha de orden *</label><input id="oc_fecha" type="date" name="fecha" required value="<?=date('Y-m-d')?>"></div>
    <div class="field span2"><label for="proveedor">Proveedor *</label><select name="proveedor_id" id="proveedor" required><option value="">Selecciona un proveedor...</option><?php foreach($proveedores as $p):?><option value="<?=(int)$p['id']?>" data-nombre="<?=ocw_e($p['nombre'])?>" data-direccion="<?=ocw_e($p['direccion']??'')?>" data-telefono="<?=ocw_e($p['telefono']??'')?>"><?=ocw_e($p['nombre'])?> (<?=(int)$p['id']?>)</option><?php endforeach;?></select></div>
    <div class="field span2"><label for="proveedor_nombre">Nombre del proveedor</label><input id="proveedor_nombre" readonly placeholder="Se completa al elegir proveedor"></div>
@@ -293,6 +343,31 @@ a{color:#165f9f;text-underline-offset:2px}a:hover{color:#0b3d6f}button,a.btn{fon
 </details>
 </section>
 </main>
+<?php if($editable):?><div id="ocfdModal" role="dialog" aria-modal="true" aria-labelledby="ocfdTitle" hidden>
+ <div class="ocfd-dialog"><h2 id="ocfdTitle">Elegir dueño para firma de la orden</h2>
+ <p>Selecciona un usuario Dueño/Dirección activo. Esto coloca su nombre en el PDF, pero no aprueba la OC electrónicamente.</p>
+ <label for="ocfdSearch" class="sr-only">Buscar dueño</label><input id="ocfdSearch" type="search" placeholder="Filtrar por nombre o rol..." autocomplete="off">
+ <div id="ocfdItems">
+ <?php foreach($firmantes as $firmante):?><button class="ocfd-option" type="button" data-ocfd-user="<?=(int)$firmante['id']?>" data-ocfd-label="<?=ocw_e($firmante['nombre'])?>" data-ocfd-search="<?=ocw_e(mb_strtolower($firmante['nombre'].' '.$firmante['rol'],'UTF-8'))?>"><span><?=ocw_e($firmante['nombre'])?></span><small><?=ocw_e($firmante['rol'])?></small></button><?php endforeach;?>
+ <?php if(!$firmantes):?><p>No hay usuarios activos con rol Dueño, Propietario o Dirección. Configura primero ese usuario.</p><?php endif;?>
+ </div><div class="ocfd-foot"><button type="button" class="btn alt" id="ocfdClose">Cerrar</button></div>
+ </div>
+</div><?php endif;?>
+<script>
+// GYD_OC_FIRMANTE_DUENO_V1: selector de nombre para firma, sin cambios de estado.
+(()=>{const modal=document.getElementById('ocfdModal');if(!modal)return;
+ const search=document.getElementById('ocfdSearch'),options=[...modal.querySelectorAll('[data-ocfd-user]')];let idTarget=null,nameTarget=null,previous=null;
+ function close(){modal.hidden=true;search.value='';options.forEach(b=>b.hidden=false);previous?.focus();}
+ document.addEventListener('click',e=>{const btn=e.target.closest('[data-ocfd-open]');if(!btn)return;
+  idTarget=document.getElementById(btn.dataset.ocfdId);nameTarget=document.getElementById(btn.dataset.ocfdName);
+  if(!idTarget||!nameTarget)return;previous=btn;modal.hidden=false;search.focus();});
+ search.addEventListener('input',()=>{const q=search.value.toLocaleLowerCase('es-MX').trim();options.forEach(b=>b.hidden=!b.dataset.ocfdSearch.includes(q));});
+ options.forEach(b=>b.addEventListener('click',()=>{idTarget.value=b.dataset.ocfdUser;nameTarget.value=b.dataset.ocfdLabel;idTarget.dispatchEvent(new Event('change',{bubbles:true}));close();}));
+ document.getElementById('ocfdClose').addEventListener('click',close);
+ modal.addEventListener('click',e=>{if(e.target===modal)close();});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden){e.stopPropagation();close();}});
+})();
+</script>
 <script>
 (function(){const filter=document.querySelector('#filtrarOrdenes');if(!filter)return;filter.addEventListener('input',()=>{let needle=filter.value.trim().toLocaleLowerCase('es-MX');let visible=0;document.querySelectorAll('.orden-row').forEach(row=>{let yes=row.textContent.toLocaleLowerCase('es-MX').includes(needle);row.hidden=!yes;if(yes)visible++;});const empty=document.querySelector('#noOrdenesBuscadas');if(empty)empty.style.display=visible?'none':'block';});})();
 </script>
@@ -471,4 +546,7 @@ $__gydNavigationHome = $__gydNavigationRole === 'COMPRAS' ? 'erp_compras_inicio.
 <?php endif; unset($__gydNavigationAccount,$__gydNavigationRole,$__gydNavigationAllowed,$__gydNavigationHome); ?>
 <!-- GYD_UNA_PESTANA_INTERNA -->
 <script src="assets/js/gyd_una_pestana.js?v=1"></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

@@ -1,0 +1,2 @@
+Excepcion GERENTE: sin asignacion obligatoria de almacen. Configurar destinatarios OC en erp_oc_win_gerentes.php.
+No altera POS ni inventarios. Copiar tools/ y ejecutar --check, --apply, --verify.

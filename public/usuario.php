@@ -240,6 +240,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
 <div class="usuario-card">
     <h3 style="margin-bottom:18px;">Crear Usuario</h3>
     <p style="font-size:13px;color:#456480;margin-top:-7px">Para personal de Compras, selecciona <strong>COMPRAS (ERP)</strong>. Cada empleado debe tener usuario, correo y contraseña propios. Podrá entrar a su panel de compras sin acceso al POS ni a la aplicación de inventario.</p>
+    <p style="font-size:13px;color:#456480"><strong>Gerentes:</strong> selecciona GERENTE sin asignar almacén ni número de caja. Después asigna la sucursal que recibirá órdenes en <a href="erp_oc_win_gerentes.php">Destinatarios de órdenes de compra</a> (Tapachula, Plaza Toscana, Ciudad Hidalgo o Tuxtla). Esta asignación es independiente del POS y del almacén.</p>
 
     <form method="POST">
         <input type="hidden" name="accion" value="crear">
@@ -304,6 +305,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
 
 <div class="usuario-card">
     <h3 style="margin-bottom:18px;">Usuarios Registrados</h3>
+    <p style="font-size:13px;color:#456480">Para habilitar notificaciones de OC a gerentes, configura sus destinos en <a href="erp_oc_win_gerentes.php">Gerentes destinatarios</a>. El rol GERENTE no obliga a seleccionar uno de los dos almacenes físicos.</p>
 
     <table class="table-usuarios">
         <thead>
@@ -312,7 +314,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
                 <th>Usuario</th>
                 <th>Correo</th>
                 <th>Rol</th>
-                <th>Almacén / Farmacia POS</th>
+                <th>Asignación Almacén / POS / OC</th>
                 <th>Estado</th>
                 <th>Password</th>
                 <th>Acciones</th>
@@ -326,7 +328,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
                     <td><?= e($usuario['usuario']) ?></td>
                     <td><?= e($usuario['correo']) ?></td>
                     <td><?= e($usuario['rol']) ?></td>
-                    <td><?= ($usuario['rol']==='CAJERO') ? e(($usuario['pos_sucursal_nombre']??'SIN ASIGNAR').' · '.($usuario['pos_caja_nombre']??'SIN CAJA')) : e($usuario['almacen_nombre'] ?? 'SIN ALMACÉN') ?></td>
+                    <td><?= ($usuario['rol']==='CAJERO') ? e(($usuario['pos_sucursal_nombre']??'SIN ASIGNAR').' · '.($usuario['pos_caja_nombre']??'SIN CAJA')) : (($usuario['rol']==='GERENTE') ? 'SUCURSAL OC (CONFIGURAR EN DESTINATARIOS)' : e($usuario['almacen_nombre'] ?? 'SIN ALMACÉN')) ?></td>
 
                     <td>
                         <?php if ((int)$usuario['estado'] === 1): ?>
@@ -462,7 +464,7 @@ include __DIR__ . '/../app/views/layouts/header.php';
 <script>
 function syncPosForm(form){
  const isCash=form.querySelector('[name=rol]').value==='CAJERO';
- const noAlmacen=['CAJERO','COMPRAS','CONTABILIDAD','DIRECCION','ADMINISTRADOR'].includes(form.querySelector('[name=rol]').value);
+ const noAlmacen=['CAJERO','COMPRAS','CONTABILIDAD','DIRECCION','ADMINISTRADOR','GERENTE'].includes(form.querySelector('[name=rol]').value);
  form.querySelectorAll('[data-pos-field]').forEach(el=>el.hidden=!isCash);
  const almacen=form.querySelector('[name=almacen_id]');almacen.closest('.usuario-field').hidden=noAlmacen;
  form.querySelector('.pos-sucursal').required=isCash;

@@ -18,7 +18,17 @@ try {
         $key=(string)($_POST['key']??'');
         $permitidas=array_column($items,'key');
         if(!in_array($key,$permitidas,true))throw new RuntimeException('El aviso no corresponde a tu usuario o ya no existe.');
-        if(!preg_match('/^(RECEPCION|OC_BODEGA|ALERTA_COMPRA):([1-9][0-9]*)$/D',$key,$parts))throw new RuntimeException('Aviso inválido.');
+        if(!preg_match('/^(RECEPCION|OC_BODEGA|ALERTA_COMPRA|OC_LLEGADA):([1-9][0-9]*)$/D',$key,$parts))throw new RuntimeException('Aviso inválido.');
+        if($parts[1]==='OC_LLEGADA'){
+            $s=$db->prepare("UPDATE erp_oc_flujo_mensajes SET leido_en=COALESCE(leido_en,NOW()) WHERE id=? AND destinatario_id=? AND tipo='LLEGADA'");
+            $s->execute([(int)$parts[2],(int)$user['id']]);
+            if($s->rowCount()===0){
+                $check=$db->prepare("SELECT leido_en FROM erp_oc_flujo_mensajes WHERE id=? AND destinatario_id=? AND tipo='LLEGADA'");
+                $check->execute([(int)$parts[2],(int)$user['id']]);
+                if($check->fetchColumn()===false)throw new RuntimeException('El aviso no corresponde a tu usuario.');
+            }
+            header('Location: erp_notificaciones.php?leido=1',true,303);exit;
+        }
         $s=$db->prepare('INSERT INTO erp_notificaciones_lecturas(usuario_id,tipo,origen_id,leido_en) VALUES(?,?,?,NOW()) ON DUPLICATE KEY UPDATE leido_en=VALUES(leido_en)');
         $s->execute([(int)$user['id'],$parts[1],(int)$parts[2]]);
         header('Location: erp_notificaciones.php?leido=1',true,303);exit;
@@ -40,10 +50,10 @@ $back=gdnt_role($user)==='COMPRAS'?'erp_compras_inicio.php':'dashboard.php';
 <?php if($error):?><p class="error" role="alert"><?=gdnt_escape($error)?></p><?php endif;?>
 <?php if(isset($_GET['leido'])):?><p class="card">Aviso marcado como leído para tu usuario. La tarea permanece pendiente hasta completarse.</p><?php endif;?>
 <div class="stats"><div class="card stat"><strong><?= (int)($counts['total']??0) ?></strong><span>Tareas pendientes</span></div><div class="card stat"><strong><?= (int)($counts['sin_leer']??0) ?></strong><span>Avisos sin leer</span></div><div class="card stat"><strong><?= (int)($counts['compras']??0) ?></strong><span>Compras</span></div><div class="card stat"><strong><?= (int)($counts['almacen']??0) ?></strong><span>Almacén</span></div></div>
-<div class="card"><div class="flex"><b>Mostrar</b><div class="actions"><a class="btn <?= $filter==='pendientes'?'':'secondary' ?>" href="?filtro=pendientes">Pendientes</a><a class="btn <?= $filter==='sin_leer'?'':'secondary' ?>" href="?filtro=sin_leer">Sin leer</a><a class="btn <?= $filter==='todos'?'':'secondary' ?>" href="?filtro=todos">Historial</a></div></div><p class="note">Las tareas se derivan de órdenes, recepciones, facturas y movimientos confirmados. Leer una notificación no cambia existencias ni elimina el pendiente. Tickets y Resurtidos conservan sus indicadores propios.</p></div>
-<?php foreach($visible as $item):?><article class="card notice <?= $item['pendiente']?'':'resuelta' ?>"><div class="flex"><div><div class="meta"><?=gdnt_escape($item['area'])?> · <?=gdnt_escape($item['fecha'])?></div><h2><?=gdnt_escape($item['titulo'])?></h2></div><div class="actions"><span class="pill <?=gdnt_escape($item['prioridad'])?>"><?=gdnt_escape($item['estado'])?></span><span class="pill <?= $item['leido']?'leido':'amarillo' ?>"><?= $item['leido']?'Leído':'Sin leer' ?></span></div></div><p class="note"><?=gdnt_escape($item['detalle'])?></p><div class="actions"><a class="btn" href="<?=gdnt_escape($item['url'])?>"><?= ($item['tipo']??'')==='ALERTA_COMPRA'?'Revisar / corregir':'Abrir trámite' ?></a><?php if(!$item['leido']):?><form method="post"><input type="hidden" name="csrf" value="<?=gdnt_escape($token)?>"><input type="hidden" name="key" value="<?=gdnt_escape($item['key'])?>"><button type="submit" class="btn secondary">Marcar leído</button></form><?php endif;?></div></article><?php endforeach;?>
+<div class="card"><div class="flex"><b>Mostrar</b><div class="actions"><a class="btn <?= $filter==='pendientes'?'':'secondary' ?>" href="?filtro=pendientes">Pendientes</a><a class="btn <?= $filter==='sin_leer'?'':'secondary' ?>" href="?filtro=sin_leer">Sin leer</a><a class="btn <?= $filter==='todos'?'':'secondary' ?>" href="?filtro=todos">Historial</a></div></div><p class="note">Las llegadas permanecen pendientes hasta detectar una entrada aplicada al inventario/POS con su factura. Si la orden conserva piezas pendientes, el aviso se cierra como «Entrada realizada con mercancía pendiente» y se conserva en Historial. Marcar leído no cierra la tarea. Tickets y Resurtidos mantienen sus controles.</p></div>
+<?php foreach($visible as $item):?><article class="card notice <?= $item['pendiente']?'':'resuelta' ?>"><div class="flex"><div><div class="meta"><?=gdnt_escape($item['area'])?> · <?=gdnt_escape($item['fecha'])?></div><h2><?=gdnt_escape($item['titulo'])?></h2></div><div class="actions"><span class="pill <?=gdnt_escape($item['prioridad'])?>"><?=gdnt_escape($item['estado'])?></span><span class="pill <?= $item['leido']?'leido':'amarillo' ?>"><?= $item['leido']?'Leído':'Sin leer' ?></span></div></div><p class="note"><?=gdnt_escape($item['detalle'])?></p><div class="actions"><a class="btn" href="<?=gdnt_escape($item['url'])?>"><?= ($item['tipo']??'')==='ALERTA_COMPRA'?'Revisar / corregir':(($item['tipo']??'')==='OC_LLEGADA'?'Ver OC y pendientes':'Abrir trámite') ?></a><?php if(!$item['leido']):?><form method="post"><input type="hidden" name="csrf" value="<?=gdnt_escape($token)?>"><input type="hidden" name="key" value="<?=gdnt_escape($item['key'])?>"><button type="submit" class="btn secondary">Marcar leído</button></form><?php endif;?></div></article><?php endforeach;?>
 <?php if(!$visible && !$error):?><div class="card">No tienes avisos en esta vista.</div><?php endif;?>
-<p class="note">Una notificación de recepción cerrada puede permanecer en Historial. En varias recepciones de un mismo código, la distribución de factura/aplicación es orientativa y requiere comprobar el folio correspondiente.</p>
+<p class="note">El historial conserva las llegadas cerradas. Cuando existan varias entregas de una misma orden, verifica el folio de factura: los avisos aún no tienen un vínculo exclusivo con cada factura y la aplicación se comprueba por OC y fecha.</p>
 </main>
 <!-- GYD_AUTO_ALERTAS_VISTA_ACTUALIZA -->
 <script>
@@ -78,4 +88,7 @@ $__gydNavigationHome = $__gydNavigationRole === 'COMPRAS' ? 'erp_compras_inicio.
 <?php endif; unset($__gydNavigationAccount,$__gydNavigationRole,$__gydNavigationAllowed,$__gydNavigationHome); ?>
 <!-- GYD_UNA_PESTANA_INTERNA -->
 <script src="assets/js/gyd_una_pestana.js?v=1"></script>
+
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
 </body></html>

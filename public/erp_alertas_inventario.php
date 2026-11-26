@@ -124,4 +124,7 @@ $counts=['critica'=>0,'alta'=>0,'media'=>0];foreach($out as $r)$counts[$r['nivel
 <?php if(!$rows):?><tr><td colspan="9">No se encontraron incidencias para estos filtros.</td></tr><?php endif;?></tbody></table></div>
 <div class="pager"><span class="muted">Página <?=$page?> de <?=$pages?></span><div class="actions"><?php if($page>1):?><a class="btn alt" href="?<?=gai_html(http_build_query(array_merge($base,['pagina'=>$page-1])))?>">← Anterior</a><?php endif;?><?php if($page<$pages):?><a class="btn alt" href="?<?=gai_html(http_build_query(array_merge($base,['pagina'=>$page+1])))?>">Siguiente →</a><?php endif;?></div></div>
 </section>
-<?php endif;?></main></body></html>
+<?php endif;?></main>
+<!-- GYD_CATALOGO_GLOBAL_CTRL_B -->
+<script defer src="assets/js/gyd_catalogo_global.js"></script>
+</body></html>

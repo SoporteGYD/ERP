@@ -18,6 +18,7 @@ function gyd_compras_modulos(): array {
         ],
         'Pedidos y productos' => [
             ['titulo'=>'Órdenes de compra', 'ruta'=>'erp_ordenes_compra.php', 'detalle'=>'Crear, importar, enviar y consultar pedidos'],
+            ['titulo'=>'Distribución y avisos ERP', 'ruta'=>'erp_oc_flujo.php', 'detalle'=>'Enviar con/sin costos a gerentes y con costos a Dirección; ver llegadas notificadas'],
             ['titulo'=>'Análisis de compras', 'ruta'=>'erp_analisis_compras.php', 'detalle'=>'Comparar costos por producto y proveedor'],
             ['titulo'=>'Proveedores', 'ruta'=>'erp_proveedores.php', 'detalle'=>'Catálogo y datos de proveedores'],
             ['titulo'=>'Catálogo maestro', 'ruta'=>'erp_catalogo_maestro.php', 'detalle'=>'Consultar productos e impuestos'],
@@ -25,12 +26,12 @@ function gyd_compras_modulos(): array {
             ['titulo'=>'Mi correo de trabajo', 'ruta'=>'erp_mi_correo.php', 'detalle'=>'Correo asociado al usuario de Compras'],
         ],
         'Facturas y seguimiento' => [
-            ['titulo'=>'Avisos de recepciones', 'ruta'=>'erp_compras_avisos.php', 'detalle'=>'Recepciones notificadas por Bodega y facturas pendientes'], // OCAV_COMPRAS_MENU_V1
+            ['titulo'=>'Avisos anteriores (histórico)', 'ruta'=>'erp_compras_avisos.php', 'detalle'=>'Consulta de recepciones antiguas, sin nuevas capturas'], // OCAV_COMPRAS_MENU_V1
             ['titulo'=>'Entradas por factura', 'ruta'=>'erp_facturas.php', 'detalle'=>'Registrar facturas vinculadas a órdenes'],
             ['titulo'=>'Verificación de factura', 'ruta'=>'erp_facturas_verificacion.php', 'detalle'=>'Consultar verificaciones y diferencias'],
             ['titulo'=>'Conciliación OC / Factura', 'ruta'=>'erp_facturas_conciliacion.php', 'detalle'=>'Consultar conciliación de aplicación'],
-            ['titulo'=>'Órdenes pendientes de recepción', 'ruta'=>'erp_recepciones_pendientes.php', 'detalle'=>'Ver faltantes y entregas parciales'],
-            ['titulo'=>'Historial de recepciones', 'ruta'=>'erp_recepciones_historial.php', 'detalle'=>'Seguimiento de recepciones registradas por Bodega'],
+            
+            
         ],
         'Pagos y seguimiento' => [
             ['titulo'=>'Cuentas por pagar', 'ruta'=>'erp_cuentas_por_pagar.php', 'detalle'=>'Documentos y solicitudes de pago'],
@@ -56,6 +57,7 @@ function gyd_compras_ruta_permitida(string $ruta): bool {
         'erp_compras_alerta_resolver.php'=>true,
         'erp_cambio_precios.php'=>true,
         'erp_ordenes_compra.php'=>true,
+        'erp_oc_flujo.php'=>true,
         'erp_oc_win.php'=>true,
         'erp_oc_win_enviar.php'=>true,
         'erp_oc_win_pdf.php'=>true,
